@@ -8,8 +8,8 @@ frontend language which compiles to JavaScript. The application is just a single
 routing. So the server only needs to distribute the static HTML page and the REST Api which is used to
 interact with the server. The [API](https://infomark.org/swagger/) is defined using [Swagger](https://swagger.io/).
 
-The server is implemented in [Go](https://golang.org/) and is available [here](https://github.com/infomark-org/infomark-backend).
+The server is implemented in [Go](https://golang.org/) and is available [here](https://github.com/infomark-org/infomark).
 
 # Building
 
-Follow these [Instructions](https://github.com/infomark-org/infomark-ui/wiki/Installation) to set up the development environment and get an overview of the included build scripts.
+Follow these Instructions from http://infomark.org.
