@@ -64,7 +64,7 @@ unwrap (Endpoint str) =
 
 basePath : String
 basePath =
-    "http://localhost:3000"
+    "/"
 
 
 
