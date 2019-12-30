@@ -17,3 +17,5 @@ elm.min.js
 /build/*.json
 
 node_modules/
+
+.cache
