@@ -179,6 +179,10 @@ view sharedState model =
         showGroups model allGroups
             ++ [ rRowButton <|
                     PbbButton <|
+                        PbbActive "Create Group" <|
+                            CreateGroup model.course_id
+               , rRowButton <|
+                    PbbButton <|
                         PbbActive "Send E-Mail To Course" <|
                             SendMailToCourse model.course_id
                ]
