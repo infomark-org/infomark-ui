@@ -19,3 +19,4 @@ elm.min.js
 node_modules/
 
 .cache
+*.gz
