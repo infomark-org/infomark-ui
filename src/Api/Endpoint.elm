@@ -9,6 +9,7 @@ module Api.Endpoint exposing
     , courseEmail
     , courseEnrollment
     , courseEnrollmentUserDetail
+    , courseExams
     , courseGrade
     , courseGrades
     , courseGroupBid
@@ -20,6 +21,9 @@ module Api.Endpoint exposing
     , coursePoints
     , courseSheets
     , courses
+    , exam
+    , examEnrollment
+    , examEnrollments
     , grade
     , group
     , groupEmail
@@ -325,3 +329,33 @@ submissionFile courseId submissionId =
 grade : Int -> Int -> Endpoint
 grade courseId gradeId =
     url [ "courses", String.fromInt courseId, "grades", String.fromInt gradeId ] []
+
+courseExams : Int -> Endpoint
+courseExams id =
+    url [ "courses", String.fromInt id, "exams" ] []
+
+exam : Int -> Int -> Endpoint
+exam courseId examId =
+    url [ "courses", String.fromInt courseId, "exams", String.fromInt examId ] []
+
+
+examEnrollment : Int -> Int -> Endpoint
+examEnrollment courseId examId =
+    url
+        [ "courses"
+        , String.fromInt courseId
+        , "exams"
+        , String.fromInt examId
+        , "enrollments"
+        ]
+        []
+
+
+examEnrollments : Endpoint
+examEnrollments =
+    url
+        [ "account"
+        , "exams"
+        , "enrollments"
+        ]
+        []

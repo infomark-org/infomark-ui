@@ -2,10 +2,12 @@ module Components.CommonElements exposing
     ( PbbButtonState(..)
     , PbbResultState(..)
     , PbbState(..)
+    , checkBoxes
     , dateElement
     , dateInputElement
     , datesDisplayContainer
     , fileUploader
+    , iconButton
     , inputElement
     , inputLabel
     , multiButton
@@ -77,6 +79,39 @@ viewFormErrors field errors =
         |> List.map (\( _, error ) -> li [ classes [ TC.red ] ] [ text error ])
         |> ul [ classes [ TC.list, TC.pl0, TC.center ] ]
 
+checkBoxes :
+    List
+        { label : String
+        , description : String
+        , isChecked : Bool
+        , message : msg
+        }
+    -> List (Html msg)
+checkBoxes configs =
+    List.map
+        (\config ->
+            div
+                [ classes
+                    [ TC.ma0
+                    , TC.pv2
+                    , TC.ph0
+                    , TC.w_100
+                    , TC.f5
+                    , TC.black_80
+                    ]
+                ]
+                [ input
+                    [ type_ "checkbox"
+                    , onClick config.message
+                    , checked config.isChecked
+                    , classes [ TC.ma1 ]
+                    ]
+                    []
+                , span [ classes [ TC.b ] ] [ text config.label ]
+                , rRow [ text config.description ]
+                ]
+        )
+        configs
 
 dateInputElement :
     { label : String
@@ -726,3 +761,22 @@ nButtonList listElements =
             )
             listElements
         )
+
+
+iconButton : String -> msg -> Html msg
+iconButton icon msg =
+    i
+        [ class "material-icons"
+        , classes
+            [ TC.mr0
+            , TC.ml_auto
+            , TC.pa2
+            , TC.black_40
+            , TC.hover_bg_near_black
+            , TC.br_100
+            , TC.hover_near_white
+            , TC.pointer
+            ]
+        , onClick msg
+        ]
+        [ text icon ]

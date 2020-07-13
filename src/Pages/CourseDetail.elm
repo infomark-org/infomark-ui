@@ -31,6 +31,7 @@
 module Pages.CourseDetail exposing (Model, Msg(..), init, update, view)
 
 import Api.Data.AccountEnrollment as AccountEnrollment exposing (AccountEnrollment)
+import Api.Data.Exam exposing (Exam, ExamEnrollment, ExamEnrollments, Exams)
 import Api.Data.Course exposing (Course)
 import Api.Data.CourseRole as CourseRole exposing (CourseRole(..))
 import Api.Data.Group as Group exposing (Group)
@@ -45,15 +46,19 @@ import Api.Data.UserEnrollment as UserEnrollment exposing (UserEnrollment)
 import Api.Endpoint exposing (sheetFile, unwrap)
 import Api.Request.Account as AccountRequests
 import Api.Request.Courses as CoursesRequests
+import Api.Request.Exam as ExamRequests
 import Api.Request.Groups as GroupsRequests
 import Api.Request.Material as MaterialRequests
 import Browser.Navigation exposing (pushUrl)
 import Components.CommonElements
     exposing
-        ( dateElement
+        ( checkBoxes
+        , dateElement
         , datesDisplayContainer
+        , dateInputElement
         , inputElement
         , multiButton
+        , iconButton
         , nButtonList
         , normalPage
         , pageContainer
@@ -64,6 +69,8 @@ import Components.CommonElements
         , rRowHeader
         , rRowHeaderActionButtons
         , searchElement
+        , textAreaElement
+        , timeInputElement
         , widePage
         )
 import Components.Groups.AdminView as GroupAdminView
@@ -71,6 +78,8 @@ import Components.Groups.BiddingView as BiddingView
 import Components.Groups.GroupView as GroupView
 import Components.Toasty
 import Components.UserAvatarEmailView as UserView
+import Date
+import DatePicker exposing (DateEvent(..), defaultSettings)
 import Dict exposing (Dict)
 import File.Download as Download
 import Html exposing (..)
@@ -85,7 +94,9 @@ import SharedState exposing (SharedState, SharedStateUpdate(..))
 import Tachyons exposing (classes, tachyons)
 import Tachyons.Classes as TC
 import Time
+import TimePicker exposing (TimeEvent(..), TimePicker)
 import Toasty
+import Utils.DateAndTimeUtils as DTU
 import Utils.DateFormatter as DF
 import Utils.Styles as Styles
 import Utils.Utils exposing (flip, handleLogoutErrors, perform, tupleMapThree)
@@ -104,6 +115,7 @@ type Msg
     | SearchUserForGroupResponse (WebData UserEnrollment) -- Search for a specific user to change the group (Only admins)
     | GroupChangedResponse (WebData GroupEnrollmentChange) -- Response for a group change initiated by an admin
     | PointOverviewResponse (WebData (List PointOverview))
+    | ToggleEnrollToExam Int
     | GroupMsg GroupMsgTypes
     | SheetRequestResponse (WebData (List Sheet))
     | MaterialRequestResponse (WebData (List Material))
@@ -115,10 +127,32 @@ type Msg
     | WriteTo Int
     | Download String
     | WriteEmailMsg Int
+    | ExamEnrollmentResponse (WebData ExamEnrollments)
+    | ExamsResponse (WebData Exams)
+    | ToggleExamEnrollmentResponse Int (WebData ())
+    | SetExamField Field String
+    | ExamDateMsg Int DatePicker.Msg
+    | ExamTimeMsg Int TimePicker.Msg
+    | ExamUpdate Int
+    | ExamCreateNew Exam
+    | ExamCreateResponse (WebData ())
+    | ExamUpdateResponse Int (WebData ())
+    | ExamDelete Int
+    | ExamDeleteResponse Int (WebData ())
+    | ExamResponse
+    | CreateExam
 
 
 type alias Model =
     { courseId : Int
+    , exams : Dict Int Exam
+    , newExam : Exam
+    , newExamVisible : Bool
+    , examDates : Dict Int (Maybe Date.Date)
+    , examTimes : Dict Int (Maybe TimePicker.Time)
+    , examDatePickers : Dict Int DatePicker.DatePicker
+    , examTimePickers : Dict Int TimePicker
+    , examEnrollments : Dict Int ExamEnrollment
     , courseRole : Maybe CourseRole
     , courseRequest : WebData Course
     , sheetRequest : WebData (List Sheet)
@@ -153,6 +187,14 @@ type GroupModel
 init : Int -> ( Model, Cmd Msg )
 init id =
     ( { courseId = id
+      , exams = Dict.empty
+      , examDates = Dict.empty
+      , examTimes = Dict.empty
+      , examDatePickers = Dict.empty
+      , examTimePickers = Dict.empty
+      , examEnrollments = Dict.empty
+      , newExamVisible = False
+      , newExam = initNewExam
       , courseRole = Nothing
       , courseRequest = Loading
       , sheetRequest = Loading
@@ -176,8 +218,15 @@ init id =
         , CoursesRequests.courseSheetsGet id SheetRequestResponse
         , CoursesRequests.courseMaterialsGet id MaterialRequestResponse
         , CoursesRequests.coursePointsGet id PointOverviewResponse
+        , ExamRequests.examsGet id ExamsResponse
+        , ExamRequests.examEnrollmentsStudentGet ExamEnrollmentResponse
         ]
     )
+
+
+initNewExam : Exam
+initNewExam =
+    Exam 42 "Neue Prüfung" "Beschreibung" (Time.millisToPosix 0) 0
 
 
 determineInitialRoleRequests : Model -> CourseRole -> ( Model, Cmd Msg )
@@ -401,6 +450,539 @@ update sharedState msg model =
             , NoUpdate
             )
 
+        ExamsResponse response ->
+            case response of
+                Success exams ->
+                    let
+                        newExams =
+                            Dict.fromList
+                                (List.map
+                                    (\e ->
+                                        ( e.id, e )
+                                    )
+                                    exams
+                                )
+
+                        datePickers =
+                            Dict.map
+                                (\id e ->
+                                    DatePicker.initFromDate <|
+                                        Date.fromPosix
+                                            (Maybe.withDefault
+                                                Time.utc
+                                                sharedState.timezone
+                                            )
+                                            (Maybe.withDefault
+                                                (Time.millisToPosix 0)
+                                                (Just e.exam_time)
+                                            )
+                                )
+                                newExams
+
+                        examDates =
+                            Dict.map
+                                (\id e ->
+                                    Just
+                                        (Date.fromPosix
+                                            (Maybe.withDefault Time.utc
+                                                sharedState.timezone
+                                            )
+                                            (Maybe.withDefault
+                                                (Time.millisToPosix 0)
+                                                (Just e.exam_time)
+                                            )
+                                        )
+                                )
+                                newExams
+
+                        examTimes =
+                            Dict.map
+                                (\id e ->
+                                    Just
+                                        (DTU.pickerTimeFromPosix
+                                            (Maybe.withDefault Time.utc sharedState.timezone)
+                                            e.exam_time
+                                        )
+                                )
+                                newExams
+
+                        timePickers =
+                            Dict.map
+                                (\id time ->
+                                    TimePicker.init <| time
+                                )
+                                examTimes
+                    in
+                    ( { model
+                        | exams = newExams
+                        , examDates = examDates
+                        , examDatePickers = datePickers
+                        , examTimes = examTimes
+                        , examTimePickers = timePickers
+                      }
+                    , Cmd.none
+                    , NoUpdate
+                    )
+
+                _ ->
+                    ( model, Cmd.none, NoUpdate )
+
+        ExamEnrollmentResponse response ->
+            case response of
+                Success enrollments ->
+                    let
+                        examEnrollments =
+                            Dict.fromList
+                                (List.map
+                                    (\en ->
+                                        ( en.exam_id, en )
+                                    )
+                                    enrollments
+                                )
+                    in
+                    ( { model | examEnrollments = examEnrollments }
+                    , Cmd.none
+                    , NoUpdate
+                    )
+
+                Failure err ->
+                    let
+                        errorMsg =
+                            case err of
+                                Http.BadUrl url ->
+                                    "BadUrl: " ++ url
+
+                                Http.Timeout ->
+                                    "Timeout"
+
+                                Http.NetworkError ->
+                                    "Networerror"
+
+                                Http.BadStatus status ->
+                                    "BadStatus: " ++ String.fromInt status
+
+                                Http.BadBody dbg ->
+                                    "BadBody: " ++ dbg
+                    in
+                    ( model
+                    , Cmd.none
+                    , ShowToast <| Components.Toasty.Error "Error" errorMsg
+                    )
+
+                _ ->
+                    ( model, Cmd.none, NoUpdate )
+
+        ToggleEnrollToExam exam_id ->
+            ( model
+            , if Dict.member exam_id model.examEnrollments then
+                ExamRequests.examEnrollmentDelete model.courseId
+                    exam_id
+                    (ToggleExamEnrollmentResponse
+                        exam_id
+                    )
+
+              else
+                ExamRequests.examEnrollmentPost model.courseId
+                    exam_id
+                    (ToggleExamEnrollmentResponse
+                        exam_id
+                    )
+            , NoUpdate
+            )
+
+        ToggleExamEnrollmentResponse exam_id response ->
+            case response of
+                Success _ ->
+                    ( model
+                    , ExamRequests.examEnrollmentsStudentGet ExamEnrollmentResponse
+                    , ShowToast <|
+                        Components.Toasty.Success "Success"
+                            "Änderung gespeichert"
+                    )
+
+                Failure err ->
+                    let
+                        errorMsg =
+                            case err of
+                                Http.BadUrl url ->
+                                    "BadUrl: " ++ url
+
+                                Http.Timeout ->
+                                    "Timeout"
+
+                                Http.NetworkError ->
+                                    "Networerror"
+
+                                Http.BadStatus status ->
+                                    "BadStatus: " ++ String.fromInt status
+
+                                Http.BadBody dbg ->
+                                    "BadBody: " ++ dbg
+                    in
+                    ( model
+                    , Cmd.none
+                    , ShowToast <| Components.Toasty.Error "Error" errorMsg
+                    )
+
+                _ ->
+                    ( model
+                    , Cmd.none
+                    , ShowToast <| Components.Toasty.Error "Error" "Could not save changes!"
+                    )
+
+        -- Update enrollments in model!
+        SetExamField field value ->
+            ( setField model field value, Cmd.none, NoUpdate )
+
+        ExamDateMsg examId subMsg ->
+            let
+                maybeOldPicker =
+                    Dict.get examId model.examDatePickers
+
+                maybeOldDate =
+                    Dict.get examId model.examDates
+            in
+            case ( maybeOldPicker, maybeOldDate ) of
+                ( Just oldPicker, Just oldDate ) ->
+                    let
+                        ( newDatePicker, event ) =
+                            DatePicker.update
+                                (datePickerSettings sharedState)
+                                subMsg
+                                oldPicker
+
+                        newDate =
+                            case event of
+                                Picked date ->
+                                    Just date
+
+                                _ ->
+                                    oldDate
+                    in
+                    ( { model
+                        | examDatePickers =
+                            Dict.insert examId
+                                newDatePicker
+                                model.examDatePickers
+                        , examDates = Dict.insert examId newDate model.examDates
+                      }
+                    , Cmd.none
+                    , NoUpdate
+                    )
+
+                ( _, _ ) ->
+                    ( model
+                    , Cmd.none
+                    , NoUpdate
+                    )
+
+        ExamTimeMsg examId subMsg ->
+            let
+                maybeOldPicker =
+                    Dict.get examId model.examTimePickers
+
+                maybeOldTime =
+                    Dict.get examId model.examTimes
+            in
+            case ( maybeOldPicker, maybeOldTime ) of
+                ( Just oldPicker, Just oldTime ) ->
+                    let
+                        ( newTimePicker, event ) =
+                            TimePicker.update timePickerSettings subMsg oldPicker
+
+                        newTime =
+                            case event of
+                                Changed time ->
+                                    time
+
+                                NoChange ->
+                                    oldTime
+                    in
+                    ( { model
+                        | examTimePickers =
+                            Dict.insert examId
+                                newTimePicker
+                                model.examTimePickers
+                        , examTimes = Dict.insert examId newTime model.examTimes
+                      }
+                    , Cmd.none
+                    , NoUpdate
+                    )
+
+                ( _, _ ) ->
+                    ( model, Cmd.none, NoUpdate )
+
+        ExamCreateNew exam ->
+            let
+                maybeDate =
+                    Dict.get exam.id model.examDates
+
+                maybeTime =
+                    Dict.get exam.id model.examTimes
+            in
+            case ( maybeDate, maybeTime ) of
+                ( Just (Just date), Just (Just time) ) ->
+                    let
+                        newExamTime =
+                            DTU.joinDateTimeAndOffset date
+                                time
+                                -- TODO this needs to be fixed!!
+                                { multiplier = 1, hours = 2, minutes = 0 }
+
+                        newExam =
+                            Exam exam.id
+                                exam.name
+                                exam.description
+                                newExamTime
+                                exam.course_id
+                    in
+                    ( model
+                    , ExamRequests.examPost model.courseId newExam ExamCreateResponse
+                    , NoUpdate
+                    )
+
+                ( _, _ ) ->
+                    ( model, Cmd.none, NoUpdate )
+
+        ExamCreateResponse response ->
+            case response of
+                Success _ ->
+                    ( { model
+                        | exams = Dict.empty
+                        , examDates = Dict.empty
+                        , examDatePickers = Dict.empty
+                        , examTimes = Dict.empty
+                        , examTimePickers = Dict.empty
+                      }
+                    , ExamRequests.examsGet model.courseId ExamsResponse
+                    , NoUpdate
+                    )
+
+                Failure _ ->
+                    ( model
+                    , Cmd.none
+                    , ShowToast <|
+                        Components.Toasty.Error "Error"
+                            "Failed to save new exam"
+                    )
+
+                _ ->
+                    ( model, Cmd.none, NoUpdate )
+
+        ExamDelete examId ->
+            ( model
+            , ExamRequests.examDelete model.courseId
+                examId
+                (ExamDeleteResponse
+                    examId
+                )
+            , NoUpdate
+            )
+
+        ExamDeleteResponse examId response ->
+            case response of
+                Success _ ->
+                    ( { model
+                        | exams = Dict.remove examId model.exams
+                        , examDates = Dict.remove examId model.examDates
+                        , examDatePickers = Dict.remove examId model.examDatePickers
+                        , examTimes = Dict.remove examId model.examTimes
+                        , examTimePickers = Dict.remove examId model.examTimePickers
+                      }
+                    , Cmd.none
+                    , ShowToast <|
+                        Components.Toasty.Success "Success"
+                            "Prüfung wurde gelöscht."
+                    )
+
+                Failure _ ->
+                    ( model
+                    , Cmd.none
+                    , ShowToast <|
+                        Components.Toasty.Error "Error"
+                            "Could not delete Exam"
+                    )
+
+                _ ->
+                    ( model, Cmd.none, NoUpdate )
+
+        ExamUpdate examId ->
+            let
+                maybeOldExam =
+                    Dict.get examId model.exams
+
+                maybeDate =
+                    Dict.get examId model.examDates
+
+                maybeTime =
+                    Dict.get examId model.examTimes
+            in
+            case ( maybeOldExam, maybeDate, maybeTime ) of
+                ( Just oldExam, Just (Just date), Just (Just time) ) ->
+                    let
+                        newExamTime =
+                            DTU.joinDateTimeAndOffset date
+                                time
+                                -- TODO this needs to be fixed!!
+                                { multiplier = 1, hours = 2, minutes = 0 }
+
+                        newExam =
+                            Exam examId
+                                oldExam.name
+                                oldExam.description
+                                newExamTime
+                                oldExam.course_id
+                    in
+                    ( model
+                    , ExamRequests.examPut model.courseId examId newExam (ExamUpdateResponse examId)
+                    , NoUpdate
+                    )
+
+                ( _, _, _ ) ->
+                    ( model
+                    , Cmd.none
+                    , ShowToast <|
+                        Components.Toasty.Error "Error" "Updating exam failed"
+                    )
+
+        ExamUpdateResponse examId response ->
+            case response of
+                Success _ ->
+                    let
+                        maybeOldExam =
+                            Dict.get examId model.exams
+
+                        maybeDate =
+                            Dict.get examId model.examDates
+
+                        maybeTime =
+                            Dict.get examId model.examTimes
+                    in
+                    case ( maybeOldExam, maybeDate, maybeTime ) of
+                        ( Just oldExam, Just (Just date), Just (Just time) ) ->
+                            let
+                                newExamTime =
+                                    DTU.joinDateTimeAndOffset date
+                                        time
+                                        { multiplier = 1, hours = 0, minutes = 0 }
+
+                                newExam =
+                                    Exam examId
+                                        oldExam.name
+                                        oldExam.description
+                                        newExamTime
+                                        oldExam.course_id
+                            in
+                            ( { model
+                                | exams =
+                                    Dict.insert examId newExam model.exams
+                              }
+                            , Cmd.none
+                            , ShowToast <|
+                                Components.Toasty.Success "Success" "Änderung gespeichert."
+                            )
+
+                        ( _, _, _ ) ->
+                            ( model
+                            , Cmd.none
+                            , ShowToast <|
+                                Components.Toasty.Success "Success" "Änderungn gespeichert. Darstellungsfehler."
+                            )
+
+                Failure _ ->
+                    ( model
+                    , Cmd.none
+                    , ShowToast <|
+                        Components.Toasty.Error "Error" "Server reports: Updating exam failed"
+                    )
+
+                _ ->
+                    ( model
+                    , Cmd.none
+                    , NoUpdate
+                    )
+
+        CreateExam ->
+            let
+                newExam =
+                    initNewExam
+
+                curTime =
+                    Maybe.withDefault (Time.millisToPosix 0) sharedState.currentTime
+
+                exams =
+                    Dict.insert newExam.id
+                        { newExam
+                            | exam_time = curTime
+                            , course_id = model.courseId
+                        }
+                        model.exams
+
+                examDates =
+                    Dict.insert newExam.id
+                        (Just
+                            (Date.fromPosix
+                                (Maybe.withDefault Time.utc
+                                    sharedState.timezone
+                                )
+                                (Maybe.withDefault
+                                    (Time.millisToPosix 0)
+                                    (Just curTime)
+                                )
+                            )
+                        )
+                        model.examDates
+
+                datePickers =
+                    Dict.insert newExam.id
+                        (DatePicker.initFromDate
+                            (Date.fromPosix
+                                (Maybe.withDefault
+                                    Time.utc
+                                    sharedState.timezone
+                                )
+                                (Maybe.withDefault
+                                    (Time.millisToPosix 0)
+                                    (Just curTime)
+                                )
+                            )
+                        )
+                        model.examDatePickers
+
+                examTimes =
+                    Dict.insert newExam.id
+                        (Just
+                            (DTU.pickerTimeFromPosix
+                                (Maybe.withDefault Time.utc sharedState.timezone)
+                                curTime
+                            )
+                        )
+                        model.examTimes
+
+                timePickers =
+                    Dict.insert newExam.id
+                        (TimePicker.init
+                            (Just
+                                (DTU.pickerTimeFromPosix
+                                    (Maybe.withDefault Time.utc sharedState.timezone)
+                                    curTime
+                                )
+                            )
+                        )
+                        model.examTimePickers
+            in
+            ( { model
+                | exams = exams
+                , examDates = examDates
+                , examDatePickers = datePickers
+                , examTimes = examTimes
+                , examTimePickers = timePickers
+              }
+            , Cmd.none
+            , NoUpdate
+            )
+
+
         _ ->
             ( model, Cmd.none, NoUpdate )
 
@@ -531,6 +1113,7 @@ view sharedState model =
         ( Success _, Just role ) ->
             pageContainer <|
                 [ widePage <| [ viewCourseInfo sharedState model ]
+                , viewExams sharedState model
                 , normalPage <|
                     [ viewSheets sharedState model
                     , viewMaterials sharedState model Slide
@@ -543,6 +1126,356 @@ view sharedState model =
         ( _, _ ) ->
             div [] []
 
+viewExams : SharedState -> Model -> Html Msg
+viewExams sharedState model =
+    case model.courseRole of
+        Just Admin ->
+            viewExamsAdmin sharedState model
+
+        Just Tutor ->
+            text ""
+
+        Just Student ->
+            viewExamsStudents sharedState model
+
+        Nothing ->
+            text ""
+
+
+viewExamsAdmin : SharedState -> Model -> Html Msg
+viewExamsAdmin sharedState model =
+    normalPage <|
+        [ rRowHeader "Klausuren"
+        , rRow
+            (Dict.toList model.exams
+                |> List.map
+                    (\( id, exam ) ->
+                        viewExamEditor
+                            sharedState
+                            model
+                            exam
+                    )
+            )
+        , nButtonList
+            [ { button1_icon = "add_circle"
+              , button1_msg = CreateExam
+              , label = "Create New Exam"
+              , right_buttons = []
+              }
+            ]
+        ]
+
+
+viewExamEditor : SharedState -> Model -> Exam -> Html Msg
+viewExamEditor sharedState model exam =
+    let
+        maybeDatePicker =
+            Dict.get exam.id model.examDatePickers
+
+        maybeExamDate =
+            Dict.get exam.id model.examDates
+
+        maybeExamTime =
+            Dict.get exam.id model.examTimes
+
+        maybeTimePicker =
+            Dict.get exam.id model.examTimePickers
+    in
+    case ( ( maybeDatePicker, maybeExamDate ), ( maybeExamTime, maybeTimePicker ) ) of
+        ( ( Just datePicker, Just examDate ), ( Just examTime, Just timePicker ) ) ->
+            rContainer
+                [ rRow
+                    (inputElement
+                        { label = "Bezeichnung"
+                        , placeholder = "Hauptklausur"
+                        , fieldType = "text"
+                        , value = exam.name
+                        }
+                        (ExamName exam.id)
+                        []
+                        SetExamField
+                    )
+                , rRow
+                    (textAreaElement
+                        { label = "Bezeichnung"
+                        , placeholder = "Hörsaal N7, N8, 90 Minuten"
+                        , value = exam.description
+                        , rows = 4
+                        }
+                        (ExamDescription exam.id)
+                        []
+                        SetExamField
+                    )
+                , rRow <|
+                    r2Column
+                        (dateInputElement
+                            { label = "Datum"
+                            , datePicker = datePicker
+                            , settings = datePickerSettings sharedState
+                            , value = examDate
+                            }
+                            ExamDate
+                            []
+                            (ExamDateMsg exam.id)
+                        )
+                        (timeInputElement
+                            { label = "Uhrzeit"
+                            , placeholder = "Uhrzeit auswählen"
+                            , timePicker = timePicker
+                            , settings = timePickerSettings
+                            }
+                            ExamTime
+                            []
+                            (ExamTimeMsg exam.id)
+                        )
+                , if exam.id == 42 then
+                    rRow
+                        [ iconButton "cloud_upload" (ExamCreateNew exam) ]
+
+                  else
+                    rRow
+                        [ iconButton "check" (ExamUpdate exam.id)
+                        , iconButton "delete" (ExamDelete exam.id)
+                        ]
+                ]
+
+        ( ( _, _ ), ( _, _ ) ) ->
+            text "ERROR on date/time pickers"
+
+datePickerSettings : SharedState -> DatePicker.Settings
+datePickerSettings sharedState =
+    let
+        curTime =
+            Maybe.withDefault (Time.millisToPosix 0) sharedState.currentTime
+    in
+    { defaultSettings
+        | inputAttributes =
+            [ Styles.lineInputStyle
+            , classes [ TC.w_100, TC.mb3 ]
+            ]
+
+        -- , dateFormatter = DF.dateToShortFormatString sharedState
+        , dayFormatter = DF.shortDayFormatter sharedState
+        , monthFormatter = DF.monthFormatter sharedState
+    }
+
+
+timePickerSettings : TimePicker.Settings
+timePickerSettings =
+    let
+        defaultSettings =
+            TimePicker.defaultSettings
+    in
+    { defaultSettings | showSeconds = False, minuteStep = 15, use24Hours = True }
+
+
+viewExamsStudents : SharedState -> Model -> Html Msg
+viewExamsStudents sharedState model =
+    if Dict.isEmpty model.exams then
+        text ""
+
+    else if Dict.isEmpty model.examEnrollments then
+        div [ classes [ TC.w_100, "bg-light-gold", TC.pa4 ] ]
+            [ normalPage <|
+                [ rRowHeader "Klausur"
+                , viewExamEnrollmentRequest sharedState model
+                , viewExamEnrollmentForm sharedState model
+                ]
+            ]
+
+    else
+        div [ classes [ TC.w_100, "bg-light-gold", TC.pa4 ] ]
+            [ normalPage <|
+                [ rRowHeader "Klausur"
+                , viewExamEnrollmentForm sharedState model
+                ]
+            ]
+
+
+viewExamEnrollmentRequest : SharedState -> Model -> Html Msg
+viewExamEnrollmentRequest sharedState model =
+    div [ classes [ "bg-dark-red", TC.pa2, TC.white_90 ] ]
+        [ rRow
+            [ text "Sie sind bisher "
+            , span [ classes [ TC.b ] ] [ text "NICHT " ]
+            , text "zur Klausur angemeldet! "
+            , text "Sie dürfen nur mitschreiben, wenn Sie sich hier "
+            , text "anmelden!"
+            ]
+        , rRow
+            [ text "Wenn Sie sich zur Haptklausur anmelden und durchfallen, dürfen Sie automatisch die Nachklausur mitschreiben." ]
+        , rRow
+            [ text "Bitte melden Sie sich explizit nur zur Nachklausur an,"
+            , text " wenn Sie aus wichtigen Gründen die Hauptklausur nicht mitschreiben können."
+            ]
+        ]
+
+
+isExamOver : SharedState -> Exam -> Bool
+isExamOver sharedState exam =
+    Time.posixToMillis exam.exam_time
+        < (Maybe.withDefault 0 <|
+            Maybe.map Time.posixToMillis
+                sharedState.currentTime
+          )
+
+
+viewExamDetails : SharedState -> Exam -> Html Msg
+viewExamDetails sharedState exam =
+    rRow
+        [ span [ classes [ TC.b ] ]
+            [ text exam.name
+            ]
+        , text " am "
+        , span
+            [ classes [ TC.b ] ]
+            [ text (DF.shortDateFormatter sharedState exam.exam_time)
+            ]
+        ]
+
+
+viewExamEnrollmentForm : SharedState -> Model -> Html Msg
+viewExamEnrollmentForm sharedState model =
+    rRow
+        (List.map
+            (\( id, e ) ->
+                if isExamOver sharedState e then
+                    case Dict.get id model.examEnrollments of
+                        Just enrollment ->
+                            case enrollment.status of
+                                0 ->
+                                    div []
+                                        [ viewExamDetails sharedState e
+                                        , rRow <|
+                                            [ text "Sie haben nicht an dieser Klausur teilgenommen."
+                                            ]
+                                        ]
+
+                                1 ->
+                                    div []
+                                        [ viewExamDetails sharedState e
+                                        , rRow <|
+                                            [ text "Sie haben mit der Note '"
+                                            , span
+                                                [ classes [ TC.b ] ]
+                                                [ text enrollment.mark
+                                                ]
+                                            , text "' bestanden. Eventuelle Boni sind bereits mit eingerechnet."
+                                            ]
+                                        , rRow <|
+                                            [ span [ classes [ TC.f7 ] ]
+                                                [ text "Die Angabe zur Note ist ohne Gewähr und nur zu Ihrer Information. Es gilt die ans Prüfungssekretariat gemeldete Note."
+                                                ]
+                                            ]
+                                        ]
+
+                                2 ->
+                                    div []
+                                        [ viewExamDetails sharedState e
+                                        , rRow <|
+                                            [ text "Sie sind mit der Note '"
+                                            , span
+                                                [ classes [ TC.b ] ]
+                                                [ text enrollment.mark
+                                                ]
+                                            , text "' durchgefallen."
+                                            , rRow <|
+                                                [ span [ classes [ TC.f7 ] ]
+                                                    [ text "Die Angabe zur Note ist ohne Gewähr und nur zu Ihrer Information. Es gilt die ans Prüfungssekretariat gemeldete Note."
+                                                    ]
+                                                ]
+                                            ]
+                                        ]
+
+                                _ ->
+                                    div []
+                                        [ viewExamDetails sharedState e
+                                        , text "Undefinierter Zustand."
+                                        ]
+
+                        Nothing ->
+                            text "Gelöscht aus gründen"
+
+                else
+                    let
+                        examInfo =
+                            { label =
+                                e.name
+                                    ++ " "
+                                    ++ DF.shortDateFormatter sharedState e.exam_time
+                                    ++ " "
+                                    ++ DF.shortTimeFormatString sharedState e.exam_time
+                            , description = e.description
+                            , isChecked = Dict.member id model.examEnrollments
+                            , message = ToggleEnrollToExam id
+                            }
+
+                        enrolledInfo =
+                            if Dict.member id model.examEnrollments then
+                                span [ classes [ TC.dark_green ] ]
+                                    [ text "Sie sind zu der Klausur angemeldet. "
+                                    , text "Entfernen Sie das Häkchen, wenn Sie nicht mitschreiben möchten"
+                                    ]
+
+                            else
+                                span [ classes [ TC.dark_red ] ]
+                                    [ text "Sie sind NICHT zu der Klausur angemeldet. "
+                                    , text "Setzten Sie das Häkchen, wenn Sie mitschreiben möchten."
+                                    ]
+                    in
+                    rRow
+                        [ div [ classes [] ] <|
+                            checkBoxes [ examInfo ]
+                                ++ [ enrolledInfo ]
+                        ]
+            )
+            (filterExamsForSuccess model.exams model.examEnrollments)
+        )
+
+
+filterExamsForSuccess : Dict Int Exam -> Dict Int ExamEnrollment -> List ( Int, Exam )
+filterExamsForSuccess exams enrollments =
+    let
+        containsSuccess =
+            Dict.foldl successFoldFunction False enrollments
+    in
+    if containsSuccess then
+        filterExam exams enrollments
+
+    else
+        Dict.toList exams
+
+
+successFoldFunction : Int -> ExamEnrollment -> Bool -> Bool
+successFoldFunction key exam acc =
+    acc || (exam.status == 1)
+
+
+filterExam : Dict Int Exam -> Dict Int ExamEnrollment -> List ( Int, Exam )
+filterExam exams enrollments =
+    let
+        joinedExamAndEnrollment =
+            Dict.merge
+                (\_ _ acc -> acc)
+                (\key a b -> Dict.insert key ( a, b ))
+                (\_ _ acc -> acc)
+                exams
+                enrollments
+                Dict.empty
+
+        examSuccess =
+            List.map
+                (\( id, ( exam, enrollment ) ) ->
+                    if enrollment.status == 1 then
+                        ( True, id, exam )
+
+                    else
+                        ( False, id, exam )
+                )
+                (Dict.toList joinedExamAndEnrollment)
+    in
+    List.map (\( use, id, exam ) -> ( id, exam ))
+        (List.filter (\( use, id, exam ) -> use) examSuccess)
 
 viewCourseInfo : SharedState -> Model -> Html Msg
 viewCourseInfo sharedState model =
@@ -1008,6 +1941,10 @@ determineRole course_id enrollments =
 type Field
     = EnrollmentSearchField
     | GroupSearchField
+    | ExamName Int
+    | ExamDescription Int
+    | ExamDate Int Time.Posix
+    | ExamTime Int Time.Posix
 
 
 setField : Model -> Field -> String -> Model
@@ -1018,3 +1955,36 @@ setField model field value =
 
         GroupSearchField ->
             { model | searchGroupInput = value }
+        ExamName examId ->
+            let
+                exams =
+                    Dict.map
+                        (\id e ->
+                            if id == examId then
+                                { e | name = value }
+
+                            else
+                                e
+                        )
+                        model.exams
+            in
+            { model | exams = exams }
+
+        ExamDescription examId ->
+            let
+                exams =
+                    Dict.map
+                        (\id e ->
+                            if id == examId then
+                                { e | description = value }
+
+                            else
+                                e
+                        )
+                        model.exams
+            in
+            { model | exams = exams }
+
+        _ ->
+            -- times are handled seperately
+            model
