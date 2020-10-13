@@ -639,10 +639,11 @@ footerView sharedState model =
             [ classes
                 [ TC.db
                 , TC.tc
+                , TC.f6
                 ]
             , Styles.textStyle
             ]
-            [ text "© 2019 "
+            [ text "© 2020 "
             , b [ classes [ TC.ttu ] ]
                 [ text "Lehrstuhl Computergrafik, University Tübingen" ]
             , text "., All Rights Reserved"
@@ -651,6 +652,7 @@ footerView sharedState model =
             [ classes
                 [ TC.tc
                 , TC.mt3
+                , TC.f6
                 ]
             ]
             [ button [ Styles.linkGreyStyle, onClick <| SelectedLanguage German ] [ text "Deutsch" ]
