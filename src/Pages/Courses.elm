@@ -387,8 +387,9 @@ view sharedState model =
                 cTemp =
                     [ rRowHeaderActionButtons "Aktuell"
                         Styles.headerStyle
-                        [ ( "+", NavigateTo CreateCourseRoute, Styles.buttonGreenStyle )
-                        ]
+                        (if userRole.root
+                            then [ ( "+", NavigateTo CreateCourseRoute, Styles.buttonGreenStyle )]
+                            else [])
                     , div
                         [ classes
                             [ TC.flex

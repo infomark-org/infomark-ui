@@ -36,7 +36,7 @@
             "jzxhuang/http-extras": "1.0.2",
             "krisajenkins/remotedata": "6.0.1",
             "pablen/toasty": "1.2.0",
-            "rtfeldman/elm-css": "16.0.0",
+            "rtfeldman/elm-css": "16.1.0",
             "rtfeldman/elm-iso8601-date-strings": "1.1.2",
             "rtfeldman/elm-validate": "4.0.1",
             "ryannhg/date-format": "2.3.0",
@@ -44,7 +44,6 @@
             "stephenreddek/elm-time-picker": "1.0.3"
         },
         "indirect": {
-            "Skinney/murmur3": "2.0.8",
             "elm/random": "1.0.0",
             "elm/virtual-dom": "1.0.2",
             "elm-community/list-extra": "8.1.0",
