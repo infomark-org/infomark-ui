@@ -196,7 +196,7 @@ view sharedState model =
                     -- TODO: Replace with translation
                     , div [ classes [ TC.mt4 ] ] <|
                         inputElement
-                            { label = "Email address"
+                            { label = (t "mail-address")
                             , placeholder = "Email"
                             , fieldType = "email"
                             , value = model.email
@@ -206,8 +206,8 @@ view sharedState model =
                             SetField
                     , div [ classes [ TC.mt3 ] ] <|
                         inputElement
-                            { label = "Passwort"
-                            , placeholder = "Password"
+                            { label = (t "password")
+                            , placeholder = (t "password")
                             , fieldType = "password"
                             , value = model.plain_password
                             }
@@ -221,14 +221,14 @@ view sharedState model =
                         [ onClick <| NavigateTo RequestPasswordResetRoute
                         , Styles.linkGreyStyle
                         ]
-                        [ text "Passwort vergessen?" ]
+                        [ text (t "password-lost") ]
 
                     -- TODO: Create password reset page
                     , button
                         [ onClick <| NavigateTo RegistrationRoute
                         , Styles.linkGreyStyle
                         ]
-                        [ text "Registrieren" ]
+                        [ text (t "action-register") ]
                     ]
                 ]
             ]
@@ -288,6 +288,6 @@ type alias Error =
 modelValidator : Validator Error Model
 modelValidator =
     Validate.all
-        [ ifBlank .email ( Email, "Bitte gib deine E-Mail ein." )
+        [ ifBlank .email ( Email, "Bitte gib deine E-Mail Adresse ein." )
         , ifBlank .plain_password ( Password, "Bitte gib dein Passwort ein." )
         ]
