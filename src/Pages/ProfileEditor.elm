@@ -426,13 +426,17 @@ viewFormLoadingOrError sharedState model =
 
 viewForm : SharedState -> Model -> Html Msg
 viewForm sharedState model =
+    let
+        t =
+            I18n.get sharedState.translations
+    in
     rContainer
         [ h1
             [ Styles.headerStyle
 
             --, classes [TC.bl_0, TC.br_0, TC.bt_0, TC.bb, TC.bw2, TC.b__black]
             ]
-            [ text "Profil bearbeiten" ]
+            [ text (t "form-title-profile") ]
         , rRow
             -- First Rows (Avatar uploader & Name)
             [ avatarUploader model
@@ -448,8 +452,8 @@ viewForm sharedState model =
                 ]
               <|
                 (inputElement
-                    { label = "First Name"
-                    , placeholder = "First Name"
+                    { label = (t "form-firstname")
+                    , placeholder = (t "form-firstname")
                     , fieldType = "text"
                     , value = model.firstname
                     }
@@ -457,8 +461,8 @@ viewForm sharedState model =
                     model.userErrors
                     SetField
                     ++ inputElement
-                        { label = "Last Name"
-                        , placeholder = "Last Name"
+                        { label = (t "form-lastname")
+                        , placeholder = (t "form-lastname")
                         , fieldType = "text"
                         , value = model.lastname
                         }
@@ -470,8 +474,8 @@ viewForm sharedState model =
         , rRowExtraSpacing <|
             r2Column
                 (inputElement
-                    { label = "Subject"
-                    , placeholder = "Subject"
+                    { label = (t "form-course-of-studies")
+                    , placeholder = "Informatik / Medieninformatik / Medizininformatik / ..."
                     , fieldType = "text"
                     , value = model.subject
                     }
@@ -480,8 +484,8 @@ viewForm sharedState model =
                     SetField
                 )
                 (inputElement
-                    { label = "Semester"
-                    , placeholder = "Semester"
+                    { label = (t "form-semester")
+                    , placeholder = (t "form-semester")
                     , fieldType = "number"
                     , value = model.semester
                     }
@@ -492,8 +496,8 @@ viewForm sharedState model =
         , rRow <|
             r1Column <|
                 inputElement
-                    { label = "Student Number"
-                    , placeholder = "Student Number"
+                    { label = (t "form-matriculation-number")
+                    , placeholder = "000000 (Uni Tübingen)"
                     , fieldType = "number"
                     , value = model.studentNumber
                     }
@@ -508,8 +512,8 @@ viewForm sharedState model =
         , rRow <|
             r1Column <|
                 inputElement
-                    { label = "Email"
-                    , placeholder = "Email"
+                    { label = (t "mail-address")
+                    , placeholder = (t "mail-address")
                     , fieldType = "email"
                     , value = model.email
                     }
@@ -519,7 +523,7 @@ viewForm sharedState model =
         , rRow <|
             r2Column
                 (inputElement
-                    { label = "New Password"
+                    { label = (t "form-new-password")
                     , placeholder = "Password"
                     , fieldType = "password"
                     , value = model.password
@@ -529,7 +533,7 @@ viewForm sharedState model =
                     SetField
                 )
                 (inputElement
-                    { label = "New Password Repeat"
+                    { label = (t "form-repeat-password")
                     , placeholder = "Password"
                     , fieldType = "password"
                     , value = model.passwordRepeat
@@ -541,7 +545,7 @@ viewForm sharedState model =
         , rRow <|
             r1Column <|
                 inputElement
-                    { label = "Old Password"
+                    { label = (t "form-old-password")
                     , placeholder = "Password"
                     , fieldType = "password"
                     , value = model.oldPassword
@@ -556,10 +560,10 @@ viewForm sharedState model =
                         || checkIfUserChanged model
                         || model.avatarChanged
                 then
-                    PbbActive "Save" Save
+                    PbbActive (t "action-save") Save
 
                 else
-                    PbbDisabled "Save"
+                    PbbDisabled (t "action-save")
         , h2
             [ Styles.sectionStyle
             , classes [ TC.mt5, TC.bt, TC.b__dark_gray, TC.bw2, TC.pt4 ]
@@ -567,14 +571,14 @@ viewForm sharedState model =
             [ text "Account Actions" ]
         , div [ classes [ TC.mt3, TC.ph2_ns, TC.flex, TC.justify_center, TC.items_center, TC.flex_wrap ] ]
             [ p [ classes [ TC.w_100, TC.w_50_ns ], Styles.textStyle ]
-                [ text "Delete your account? This cannot be undone and you lose every submission and contribution to all courses." ]
+                [ text (t "form-delete-account") ]
             , div [ classes [ TC.w_100, TC.w_50_ns, TC.pl2_ns ] ]
                 [ button
                     [ Styles.buttonRedStyle
                     , classes [ TC.w_100 ]
                     , onClick RequestAccountDelete
                     ]
-                    [ text "Delete" ]
+                    [ text (t "action-delete") ]
                 ]
             ]
         ]
