@@ -239,8 +239,8 @@ view sharedState model =
                               -- First element
                               <|
                                 inputElement
-                                    { label = "First name"
-                                    , placeholder = "First name"
+                                    { label = (t "form-firstname")
+                                    , placeholder = (t "form-firstname")
                                     , fieldType = "text"
                                     , value = model.firstName
                                     }
@@ -251,8 +251,8 @@ view sharedState model =
                               -- Second element
                               <|
                                 inputElement
-                                    { label = "Last name"
-                                    , placeholder = "Last name"
+                                    { label = (t "form-lastname")
+                                    , placeholder = (t "form-lastname")
                                     , fieldType = "text"
                                     , value = model.lastName
                                     }
@@ -266,8 +266,8 @@ view sharedState model =
                               -- First element
                               <|
                                 inputElement
-                                    { label = "Subject"
-                                    , placeholder = "Subject"
+                                    { label = (t "form-course-of-studies")
+                                    , placeholder = "Informatik / Medieninformatik / Medizininformatik / ..."
                                     , fieldType = "text"
                                     , value = model.subject
                                     }
@@ -278,8 +278,8 @@ view sharedState model =
                               -- Second element
                               <|
                                 inputElement
-                                    { label = "Semester"
-                                    , placeholder = "Semester"
+                                    { label = (t "form-semester")
+                                    , placeholder = "1"
                                     , fieldType = "number"
                                     , value = model.semester
                                     }
@@ -291,8 +291,8 @@ view sharedState model =
                             -- Thrid Row (Student Number)
                             [ div [ classes [ TC.fl, TC.w_100 ] ] <|
                                 inputElement
-                                    { label = "Student Number"
-                                    , placeholder = "Student Number"
+                                    { label = (t "form-matriculation-number")
+                                    , placeholder = "000000 (Uni Tübingen)"
                                     , fieldType = "number"
                                     , value = model.studentNumber
                                     }
@@ -304,7 +304,7 @@ view sharedState model =
                             -- Fourth Row (Email)
                             [ div [ classes [ TC.fl, TC.w_100 ] ] <|
                                 inputElement
-                                    { label = "Email address"
+                                    { label = (t "mail-address")
                                     , placeholder = "Email"
                                     , fieldType = "email"
                                     , value = model.email
@@ -319,8 +319,8 @@ view sharedState model =
                               -- First element
                               <|
                                 inputElement
-                                    { label = "Password"
-                                    , placeholder = "Password"
+                                    { label = (t "password")
+                                    , placeholder = (t "password")
                                     , fieldType = "password"
                                     , value = model.password
                                     }
@@ -331,7 +331,7 @@ view sharedState model =
                               -- Second element
                               <|
                                 inputElement
-                                    { label = "Repeat Password"
+                                    { label = (t "form-repeat-password")
                                     , placeholder = "Password"
                                     , fieldType = "password"
                                     , value = model.passwordRepeat
@@ -345,12 +345,12 @@ view sharedState model =
                         [ Styles.buttonGreyStyle
                         , classes [ TC.mt4, TC.w_100 ]
                         ]
-                        [ text "Registrieren" ]
+                        [ text (t "form-register") ]
 
                     -- TODO: Replace with translation
                     ]
                 , div [ classes [ TC.mt3 ] ]
-                    [ button [ onClick <| NavigateTo LoginRoute, Styles.linkGreyStyle ] [ text "Anmelden" ] --TODO: Replace with translation
+                    [ button [ onClick <| NavigateTo LoginRoute, Styles.linkGreyStyle ] [ text (t "form-login") ] --TODO: Replace with translation
                     ]
                 ]
             ]
@@ -370,16 +370,18 @@ noUniEmailDialog sharedState model =
                 [ h1 [] [ text "No University E-Mail" ] ]
             , div
                 [ classes [ TC.w_100, TC.mt4 ] ]
-                [ p [ Styles.textStyle ] [ text "The provided E-Mail is no university E-Mail address. We can not send you any E-Mails. This includes the confirmation E-Mail. To confirm your E-Mail and use the course system you need to ask a tutor." ]
+                [ p [ Styles.textStyle ] [ text "The provided E-Mail is no university E-Mail address." ]
                 , div [ classes [ TC.fr, TC.mt3 ] ]
-                    [ button
+                    [
+                    button
                         [ classes
                             []
                         , Styles.buttonRedStyle
                         , onClick <| Register True
                         ]
                         [ text "Register anyway" ]
-                    , button
+                    ,
+                      button
                         [ classes
                             [ TC.ml3 ]
                         , Styles.buttonGreenStyle

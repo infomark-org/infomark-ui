@@ -53,5 +53,16 @@
     "day-thu-short": "Thu.",
     "day-fri-short": "Fru.",
     "day-sat-short": "Sat.",
-    "day-sun-short": "Sun."
+    "day-sun-short": "Sun.",
+    "mail-address": "E-Mail Address",
+    "password": "Password",
+    "password-lost": "Forgot your password?",
+    "form-firstname": "Firstname",
+    "form-lastname": "Lastname",
+    "form-course-of-studies": "Course of studies",
+    "form-semester": "Semester",
+    "form-matriculation-number": "Matriculation Number",
+    "form-repeat-password": "Repeat Password",
+    "form-register": "Register",
+    "form-login": "Login"
 }
