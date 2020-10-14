@@ -373,14 +373,14 @@ noUniEmailDialog sharedState model =
                 [ p [ Styles.textStyle ] [ text "The provided E-Mail is no university E-Mail address." ]
                 , div [ classes [ TC.fr, TC.mt3 ] ]
                     [
-                    button
-                        [ classes
-                            []
-                        , Styles.buttonRedStyle
-                        , onClick <| Register True
-                        ]
-                        [ text "Register anyway" ]
-                    ,
+                    --button
+                    --    [ classes
+                    --        []
+                    --    , Styles.buttonRedStyle
+                    --    , onClick <| Register True
+                    --    ]
+                    --    [ text "Register anyway" ]
+                    --,
                       button
                         [ classes
                             [ TC.ml3 ]

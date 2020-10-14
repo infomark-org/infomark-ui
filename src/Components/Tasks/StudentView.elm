@@ -338,28 +338,29 @@ view sharedState model deadlineReached =
                         , span [ classes [ TC.fw6 ] ] [ text "programming exercises:" ]
                         , text " Upload a "
                         , span [ classes [ TC.fw6 ] ] [ text "Zip-file" ]
-                        , text " that contains all "
-                        , span [ classes [ TC.fw6 ] ] [ text "package directories" ]
-                        , text " from the "
-                        , span [ classes [ TC.fw6 ] ] [ text "'src/'" ]
-                        , text " folder of your Eclipse project."
+                        , text " that contains your .rkt file."
+                        --, text " that contains all "
+                        --, span [ classes [ TC.fw6 ] ] [ text "package directories" ]
+                        --, text " from the "
+                        --, span [ classes [ TC.fw6 ] ] [ text "'src/'" ]
+                        --, text " folder of your Eclipse project."
                         ]
-                    , h5
-                        [ classes
-                            [ TC.normal
-                            , TC.black_80
-                            , TC.mt0
-                            , TC.mb1
-                            ]
-                        ]
-                        [ text "For "
-                        , span [ classes [ TC.fw6 ] ] [ text "text exercises:" ]
-                        , text " Upload a "
-                        , span [ classes [ TC.fw6 ] ] [ text "Zip-file" ]
-                        , text " that contains a plain "
-                        , span [ classes [ TC.fw6 ] ] [ text ".txt-file" ]
-                        , text " with your answers."
-                        ]
+                    --, h5
+                    --    [ classes
+                    --        [ TC.normal
+                    --        , TC.black_80
+                    --        , TC.mt0
+                    --        , TC.mb1
+                    --        ]
+                    --    ]
+                    --    [ text "For "
+                    --    , span [ classes [ TC.fw6 ] ] [ text "text exercises:" ]
+                    --    , text " Upload a "
+                    --    , span [ classes [ TC.fw6 ] ] [ text "Zip-file" ]
+                    --    , text " that contains a plain "
+                    --    , span [ classes [ TC.fw6 ] ] [ text ".txt-file" ]
+                    --    , text " with your answers."
+                    --    ]
                     , fileUploader model.hover model.submission DragEnter DragLeave Pick GotFiles
                     ]
             , if model.uploading == Loading then
@@ -405,21 +406,21 @@ view sharedState model deadlineReached =
 
                         else
                             PbbActive "Upload" UploadSubmission
-            , rRow <|
-                r1Column <|
-                    [ inputLabel "Test Results"
-                    , renderInTerminalBox
-                        (case model.gradeResponse of
-                            Success grade ->
-                                grade.public_test_log
+            --, rRow <|
+            --    r1Column <|
+            --        [ inputLabel "Test Results"
+            --        , renderInTerminalBox
+            --            (case model.gradeResponse of
+            --                Success grade ->
+            --                    grade.public_test_log
 
-                            Loading ->
-                                "Loading"
+            --                Loading ->
+            --                    "Loading"
 
-                            _ ->
-                                "Undefined"
-                        )
-                    ]
+            --                _ ->
+            --                    "Undefined"
+            --            )
+            --        ]
             , rRow <|
                 r1Column <|
                     [ case model.gradeResponse of
