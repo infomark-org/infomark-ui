@@ -635,20 +635,20 @@ footerView sharedState model =
             , TC.db
             ]
         ]
-        [ small
-            [ classes
-                [ TC.db
-                , TC.tc
-                , TC.f6
-                ]
-            , Styles.textStyle
-            ]
-            [ text "© 2020 "
-            , b [ classes [ TC.ttu ] ]
-                [ text "Lehrstuhl Computergrafik, University Tübingen" ]
-            , text "., All Rights Reserved"
-            ]
-        , div
+        [ --small
+            --[ classes
+            --    [ TC.db
+            --    , TC.tc
+            --    , TC.f6
+            --    ]
+            --, Styles.textStyle
+            --]
+            --[ text "© 2020 "
+            --, b [ classes [ TC.ttu ] ]
+            --    [ text "Lehrstuhl Computergrafik, University Tübingen" ]
+            --, text "., All Rights Reserved"
+            --]
+        div
             [ classes
                 [ TC.tc
                 , TC.mt3

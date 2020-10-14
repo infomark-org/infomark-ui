@@ -367,10 +367,10 @@ noUniEmailDialog sharedState model =
             ]
             [ div
                 [ classes [ TC.w_100, TC.ph1, TC.bb, TC.bw2, TC.b__black ] ]
-                [ h1 [] [ text "No University E-Mail" ] ]
+                [ h1 [] [ text "Unzulässige E-Mail-Adresse" ] ]
             , div
                 [ classes [ TC.w_100, TC.mt4 ] ]
-                [ p [ Styles.textStyle ] [ text "The provided E-Mail is no university E-Mail address." ]
+                [ p [ Styles.textStyle ] [ text "Bitte verwende deine E-Mail-Adresse der Universität (...@student.uni-tuebingen.de)." ]
                 , div [ classes [ TC.fr, TC.mt3 ] ]
                     [
                     --button
