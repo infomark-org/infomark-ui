@@ -229,7 +229,22 @@ view sharedState model =
                         , Styles.headerStyle
                         ]
                         [ text (t "page-title-registration") ]
-
+                    , div [ classes [ TC.tl, TC.bn, TC.f6 ] ]
+                        [ div []
+                                ([ text "Hinweis: Zur Registrierung "
+                                , b [ classes [ ] ] [ text "muss" ]
+                                , text " die universitäre E-Mail-Adresse (...@student.uni-tuebingen.de) verwendet werden. "
+                                ]
+                                ++
+                                [ text "Falls diese noch nicht vergeben wurde, bitte an "
+                                --, a [ classes [ TC.link ] ] [text "info1-ws2021@informatik.uni-tuebingen.de"]
+                                , a [ classes [ TC.link ], href "mailto:info1-ws2021@informatik.uni-tuebingen.de?subject=[info1] Registrierung Infomark" ]
+                                    [text "info1-ws2021@informatik.uni-tuebingen.de"]
+                                , text " wenden. "
+                                , text "Geben Sie in diesem Fall in Ihrer E-Mail an uns die folgenden Daten an: "
+                                , text "Vorname, Nachname, Studiengang, Semester, Matrikelnummer (falls vorhanden)."
+                                ])
+                        ]
                     -- TODO: Replace with translation
                     , div [ classes [ TC.w_100 ] ]
                         -- GRID!
