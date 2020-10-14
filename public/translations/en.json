@@ -64,5 +64,11 @@
     "form-matriculation-number": "Matriculation Number",
     "form-repeat-password": "Repeat Password",
     "form-register": "Register",
-    "form-login": "Login"
+    "form-login": "Login",
+    "form-title-profile": "Edit Profile",
+    "form-old-password": "Old Password",
+    "form-new-password": "New Password",
+    "action-save": "Save",
+    "form-delete-account": "Delete your account? ⚠ This cannot be undone and you lose every submission and contribution to all courses.",
+    "action-delete": "Delete"
 }

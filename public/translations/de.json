@@ -64,5 +64,11 @@
     "form-matriculation-number": "Matrikelnummer",
     "form-repeat-password": "Passwort Wiederholen",
     "form-register": "Registrieren",
-    "form-login": "Anmelden"
+    "form-login": "Anmelden",
+    "form-title-profile": "Profil Bearbeiten",
+    "form-old-password": "Altes Passwort",
+    "form-new-password": "Neues Passwort",
+    "action-save": "Speichern",
+    "form-delete-account": "Account löschen? ⚠ Dieser Vorgang kann nicht rückgängig gemacht werden.",
+    "action-delete": "Löschen"
 }
