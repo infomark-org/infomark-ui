@@ -295,47 +295,47 @@ viewTask sharedState model task grade feedback =
                     ]
                 ]
         ]
-            ++ (case grade.file_url of
-                    Just url ->
-                        if String.isEmpty url then
-                            [ text "" ]
+            --++ (case grade.file_url of
+            --        Just url ->
+            --            if String.isEmpty url then
+            --                [ text "" ]
 
-                        else
-                            [ CE.rRowExtraSpacing <|
-                                CE.r1Column <|
-                                    [ CE.inputLabel "Public Test Results"
-                                    , CE.renderInTerminalBox
-                                        (case grade.public_execution_state of
-                                            Pending ->
-                                                "Pending Test"
+            --            else
+            --                [ CE.rRowExtraSpacing <|
+            --                    CE.r1Column <|
+            --                        [ CE.inputLabel "Public Test Results"
+            --                        , CE.renderInTerminalBox
+            --                            (case grade.public_execution_state of
+            --                                Pending ->
+            --                                    "Pending Test"
 
-                                            Running ->
-                                                "Running Test"
+            --                                Running ->
+            --                                    "Running Test"
 
-                                            Finished ->
-                                                grade.public_test_log
-                                        )
-                                    ]
-                            , CE.rRowExtraSpacing <|
-                                CE.r1Column <|
-                                    [ CE.inputLabel "Private Test Results"
-                                    , CE.renderInTerminalBox
-                                        (case grade.private_execution_state of
-                                            Pending ->
-                                                "Pending Test"
+            --                                Finished ->
+            --                                    grade.public_test_log
+            --                            )
+            --                        ]
+            --                , CE.rRowExtraSpacing <|
+            --                    CE.r1Column <|
+            --                        [ CE.inputLabel "Private Test Results"
+            --                        , CE.renderInTerminalBox
+            --                            (case grade.private_execution_state of
+            --                                Pending ->
+            --                                    "Pending Test"
 
-                                            Running ->
-                                                "Running Test"
+            --                                Running ->
+            --                                    "Running Test"
 
-                                            Finished ->
-                                                grade.private_test_log
-                                        )
-                                    ]
-                            ]
+            --                                Finished ->
+            --                                    grade.private_test_log
+            --                            )
+            --                        ]
+            --                ]
 
-                    Nothing ->
-                        [ text "" ]
-               )
+            --        Nothing ->
+            --            [ text "" ]
+            --   )
             ++ [ CE.rRowExtraSpacing <|
                     CE.r2Column
                         (CE.textAreaElement
@@ -406,7 +406,7 @@ viewTask sharedState model task grade feedback =
                                         not testFinished
                                             && submissionAvailable
                                     then
-                                        CE.PbbActive "Benoten (Achtung: Test nicht vollständig)"
+                                        CE.PbbActive "Benoten" -- (Achtung: Test nicht vollständig)"
                                             (SendGrade grade.id)
 
                                     else
