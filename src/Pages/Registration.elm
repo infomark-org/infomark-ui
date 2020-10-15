@@ -388,21 +388,21 @@ noUniEmailDialog sharedState model =
                 [ p [ Styles.textStyle ] [ text "Bitte verwende deine E-Mail-Adresse der Universität (...@student.uni-tuebingen.de)." ]
                 , div [ classes [ TC.fr, TC.mt3 ] ]
                     [
-                    --button
-                    --    [ classes
-                    --        []
-                    --    , Styles.buttonRedStyle
-                    --    , onClick <| Register True
-                    --    ]
-                    --    [ text "Register anyway" ]
-                    --,
+                    button
+                        [ classes
+                            []
+                        , Styles.buttonRedStyle
+                        , onClick <| Register True
+                        ]
+                        [ text "Trotzdem Registrieren" ]
+                    ,
                       button
                         [ classes
                             [ TC.ml3 ]
                         , Styles.buttonGreenStyle
                         , onClick <| NoUniversityMailWarningVisible False
                         ]
-                        [ text "Change E-Mail" ]
+                        [ text "E-Mail-Adresse ändern" ]
                     ]
                 ]
             ]
