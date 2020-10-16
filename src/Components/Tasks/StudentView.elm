@@ -17,11 +17,11 @@ import Api.Data.TaskRatingResponse exposing (TaskRatingResponse)
 import Api.Request.Task as TaskRequests
 import Components.CommonElements
     exposing
-        ( dateElement
-        , datesDisplayContainer
-        , PbbButtonState(..)
+        ( PbbButtonState(..)
         , PbbResultState(..)
         , PbbState(..)
+        , dateElement
+        , datesDisplayContainer
         , fileUploader
         , inputLabel
         , r1Column
@@ -39,8 +39,8 @@ import Components.CommonElements
 import Components.Toasty
 import Debounce exposing (Debounce)
 import File exposing (File)
-import File.Select as Select
 import File.Download as Download
+import File.Select as Select
 import Html exposing (..)
 import Html.Events exposing (onClick)
 import Http
@@ -173,7 +173,7 @@ update sharedState msg model =
                                 500 ->
                                     ShowToast <|
                                         Components.Toasty.Error "Error"
-                                            "Server rejected file. Too large or no .zip file"
+                                            "Server rejected file. Too large or no .rkt file"
 
                                 401 ->
                                     ShowToast <|
@@ -255,7 +255,7 @@ update sharedState msg model =
             ( { model | collapse = not model.collapse }, Cmd.none, NoUpdate )
 
         GotFiles file files ->
-            case ( File.size file < 7340032, String.contains ".zip" <| File.name file ) of
+            case ( File.size file < 7340032, String.contains ".rkt" <| File.name file ) of
                 ( True, True ) ->
                     ( { model | hover = False, submission = Just file }, Cmd.none, NoUpdate )
 
@@ -278,11 +278,11 @@ update sharedState msg model =
                     , Cmd.none
                     , ShowToast <|
                         Components.Toasty.Error "Error"
-                            "Only zip files are allowed for submissions"
+                            "Only rkt files are allowed for submissions"
                     )
 
         Pick ->
-            ( model, Select.files [ "application/zip" ] GotFiles, NoUpdate )
+            ( model, Select.files [ ".rkt" ] GotFiles, NoUpdate )
 
         DragEnter ->
             ( { model | hover = True }, Cmd.none, NoUpdate )
@@ -313,18 +313,24 @@ update sharedState msg model =
 
 view : SharedState -> Model -> Bool -> Html Msg
 view sharedState model deadlineReached =
-    let upl = case model.gradeResponse of
+    let
+        upl =
+            case model.gradeResponse of
                 Success grade ->
-                        if String.contains "Fehlerhafte Abgabe!" grade.public_test_log
-                        then h2 [ classes [TC.tl, TC.bn, TC.f6, TC.dark_red ] ]
-                                [ dd [ classes [ TC.ml0 ] ] [ text "Fehlerhaft hochgeladen: ", DF.dateAndTimeFormatter sharedState grade.updated_at ] ]
-                        else
-                            if String.contains "submission received and will be tested" grade.public_test_log
-                            then h2 [ classes [TC.tl, TC.bn, TC.f6, TC.dark_red ] ]
-                                    [ dd [ classes [ TC.ml0 ] ] [ text "Validierung der Abgabe steht noch aus: ", DF.dateAndTimeFormatter sharedState grade.updated_at ] ]
-                            else h2 [ classes [TC.tl, TC.bn, TC.f6, TC.dark_green ] ]
-                                    [ dd [ classes [ TC.ml0 ] ] [ text "Erfolgreich hochgeladen: ", DF.dateAndTimeFormatter sharedState grade.updated_at ] ]
-                _ -> h2 [ classes [TC.tl, TC.bn, TC.f6, TC.dark_red ] ] [ text "Noch nichts hochgeladen." ]
+                    if String.contains "Fehlerhafte Abgabe!" grade.public_test_log then
+                        h2 [ classes [ TC.tl, TC.bn, TC.f6, TC.dark_red ] ]
+                            [ dd [ classes [ TC.ml0 ] ] [ text "Fehlerhaft hochgeladen: ", DF.dateAndTimeFormatter sharedState grade.updated_at ] ]
+
+                    else if String.contains "submission received and will be tested" grade.public_test_log then
+                        h2 [ classes [ TC.tl, TC.bn, TC.f6, TC.dark_red ] ]
+                            [ dd [ classes [ TC.ml0 ] ] [ text "Validierung der Abgabe steht noch aus: ", DF.dateAndTimeFormatter sharedState grade.updated_at ] ]
+
+                    else
+                        h2 [ classes [ TC.tl, TC.bn, TC.f6, TC.dark_green ] ]
+                            [ dd [ classes [ TC.ml0 ] ] [ text "Erfolgreich hochgeladen: ", DF.dateAndTimeFormatter sharedState grade.updated_at ] ]
+
+                _ ->
+                    h2 [ classes [ TC.tl, TC.bn, TC.f6, TC.dark_red ] ] [ text "Noch nichts hochgeladen." ]
     in
     rContainer <|
         rCollapsablePlain
@@ -349,14 +355,16 @@ view sharedState model deadlineReached =
                         [ text "For "
                         , span [ classes [ TC.fw6 ] ] [ text "programming exercises:" ]
                         , text " Upload a "
-                        , span [ classes [ TC.fw6 ] ] [ text "Zip-file" ]
+                        , span [ classes [ TC.fw6 ] ] [ text "rkt-file" ]
                         , text " that contains your solution."
+
                         --, text " that contains all "
                         --, span [ classes [ TC.fw6 ] ] [ text "package directories" ]
                         --, text " from the "
                         --, span [ classes [ TC.fw6 ] ] [ text "'src/'" ]
                         --, text " folder of your Eclipse project."
                         ]
+
                     --, h5
                     --    [ classes
                     --        [ TC.normal
@@ -424,15 +432,22 @@ view sharedState model deadlineReached =
                         (case model.gradeResponse of
                             Success grade ->
                                 case grade.file_url of
-                                    Just url -> if String.isEmpty url then
-                                                    []
-                                                else
-                                                    [ rRowButton <|
-                                                        PbbButton <|
-                                                            PbbActive "Download Submission" (DownloadSubmission url)
-                                                    ]
-                                    _ -> []
-                            _ -> [])
+                                    Just url ->
+                                        if String.isEmpty url then
+                                            []
+
+                                        else
+                                            [ rRowButton <|
+                                                PbbButton <|
+                                                    PbbActive "Download Submission" (DownloadSubmission url)
+                                            ]
+
+                                    _ ->
+                                        []
+
+                            _ ->
+                                []
+                        )
             , rRow <|
                 r1Column <|
                     [ inputLabel "Test Results"
@@ -452,18 +467,23 @@ view sharedState model deadlineReached =
                 r1Column <|
                     [ case model.gradeResponse of
                         Success grade ->
-                            if String.contains "Fehlerhafte Abgabe!" grade.public_test_log
-                            then datesDisplayContainer <|
+                            if String.contains "Fehlerhafte Abgabe!" grade.public_test_log then
+                                datesDisplayContainer <|
                                     dateElement "Die Abgabe wurde zuletzt fehlerhaft hochgeladen am: " <|
                                         DF.dateAndTimeFormatter sharedState grade.updated_at
-                            else if String.contains "submission received and will be tested" grade.public_test_log
-                                then datesDisplayContainer <|
-                                        dateElement "Validierung der Abgabe steht noch aus: " <|
-                                            DF.dateAndTimeFormatter sharedState grade.updated_at
-                                else datesDisplayContainer <|
-                                        dateElement "Die Abgabe wurde zuletzt erfolgreich hochgeladen am: " <|
-                                            DF.dateAndTimeFormatter sharedState grade.updated_at
-                        _ -> text <| "Bisher wurde noch keine Datei hochgeladen."
+
+                            else if String.contains "submission received and will be tested" grade.public_test_log then
+                                datesDisplayContainer <|
+                                    dateElement "Validierung der Abgabe steht noch aus: " <|
+                                        DF.dateAndTimeFormatter sharedState grade.updated_at
+
+                            else
+                                datesDisplayContainer <|
+                                    dateElement "Die Abgabe wurde zuletzt erfolgreich hochgeladen am: " <|
+                                        DF.dateAndTimeFormatter sharedState grade.updated_at
+
+                        _ ->
+                            text <| "Bisher wurde noch keine Datei hochgeladen."
                     ]
             ]
                 ++ (case model.gradeResponse of
@@ -493,7 +513,7 @@ view sharedState model deadlineReached =
                    )
                 ++ [ rRow <|
                         r1Column <|
-                            [ h2 [ classes [ TC.tl, TC.bn, TC.dark_red ] ] [text <| "Hinweis: Fehlerhafte Abgaben werden mit 0 Punkten bewertet!" ] ]
+                            [ h2 [ classes [ TC.tl, TC.bn, TC.dark_red ] ] [ text <| "Hinweis: Fehlerhafte Abgaben werden mit 0 Punkten bewertet!" ] ]
                    ]
                 ++ [ rRow <|
                         r1Column <|
