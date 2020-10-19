@@ -9,6 +9,7 @@ module Components.CommonElements exposing
     , fileUploader
     , iconButton
     , inputElement
+    , dropdownElement
     , inputLabel
     , multiButton
     , nButtonList
@@ -47,9 +48,9 @@ import DatePicker
 import File exposing (File)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick, onInput, preventDefaultOn)
+import Html.Events exposing (on, onClick, onInput, onSubmit, preventDefaultOn)
 import Html.Events.Extra exposing (onEnter)
-import Json.Decode as Decode exposing (Decoder)
+import Json.Decode as Decode exposing (Decoder, map)
 import Markdown as MD
 import Spinner
 import Tachyons exposing (classes)
@@ -73,6 +74,17 @@ inputElement inputConfig field errors msg =
     , viewFormErrors field errors
     ]
 
+dropdownElement : { label : String, fieldType : String, value : String } -> List (Html msg) -> field -> List ( field, String ) -> (field -> String -> msg) -> List (Html msg)
+dropdownElement inputConfig options field errors msg =
+    [ inputLabel inputConfig.label
+    , select
+        [ Styles.lineInputStyle
+        , classes [ TC.w_100, TC.mb3 ]
+        , onInput <| msg field
+        ]
+        options
+    , viewFormErrors field errors
+    ]
 
 viewFormErrors : field -> List ( field, String ) -> Html msg
 viewFormErrors field errors =
