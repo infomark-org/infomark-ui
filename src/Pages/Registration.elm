@@ -4,7 +4,7 @@ import Api.Data.User exposing (User)
 import Api.Data.UserAccount exposing (UserAccount)
 import Api.Request.Account exposing (accountPost)
 import Browser.Navigation exposing (pushUrl)
-import Components.CommonElements exposing (inputElement)
+import Components.CommonElements exposing (inputElement, dropdownElement)
 import Components.Dialog as Dialog
 import Components.Toasty
 import Html exposing (..)
@@ -32,6 +32,7 @@ type alias Model =
     , lastName : String
     , studentNumber : String
     , semester : String
+    , degree : String
     , subject : String
     , registrationProgress : WebData User
     , errors : List Error
@@ -51,7 +52,7 @@ modelToBody sharedState model =
         , studentNumber = model.studentNumber
         , semester = Maybe.withDefault 1 <| String.toInt model.semester
         , language = languageToBackendString sharedState.selectedLanguage
-        , subject = model.subject
+        , subject = model.degree ++ " " ++ model.subject
         , root = Nothing
         }
     , account =
@@ -80,7 +81,8 @@ init =
       , lastName = ""
       , studentNumber = ""
       , semester = ""
-      , subject = ""
+      , degree = "Bachelor of Science"
+      , subject = "Informatik"
       , registrationProgress = NotAsked
       , errors = []
       , toasties = Toasty.initialState
@@ -167,6 +169,46 @@ updateHandleRegistrationResponse sharedState model response =
 
 -- TODO: Update the shared state
 -- TODO notify user that he must confirm his email or talk to admins
+
+majors : List String
+majors = [ "Accounting and Finance"
+         , "Bioinformatik"
+         , "Biologie"
+         , "Computational Neuroscience"
+         , "Computerlinguistik"
+         , "Economics and Business Administration"
+         , "General Management"
+         , "Geographie"
+         , "Germanistik"
+         , "Koreanistik"
+         , "Philosophie"
+         , "Physik"
+         , "Psychologie"
+         , "Informatik"
+         , "International Business Administration"
+         , "International Economics"
+         , "Japanologie"
+         , "Kognitionswissenschaft"
+         , "Mathematik"
+         , "Medieninformatik"
+         , "Medienwissenschaften"
+         , "Medizininformatik (Uni Tübingen)"
+         , "Medizintechnik (Uni Stuttgart)"
+         , "Nanoscience"
+         ]
+
+degrees : List String
+degrees = [ "Bachelor of Science"
+          , "Master of Science"
+          , "Bachelor of Education"
+          , "Bachelor of Arts"
+          , "Master of Arts"
+          , "PhD"
+          , "LA GymPO"
+          ]
+
+subjectOption : String -> Html msg
+subjectOption subject = option [ selected (subject == "Bachelor of Science" || subject == "Informatik"), value subject ] [ text subject ]
 
 
 view : SharedState -> Model -> Html Msg
@@ -277,19 +319,34 @@ view sharedState model =
                             ]
                         , div [ classes [ TC.mt3, TC.cf, TC.ph2_ns ] ]
                             -- Second Row (Subject, Semester number)
-                            [ div [ classes [ TC.fl, TC.w_100, TC.w_70_ns ] ]
+                            [ div [ classes [ TC.fl, TC.w_100, TC.w_30_ns ] ]
                               -- First element
                               <|
-                                inputElement
+                                dropdownElement
+                                    { label = "Abschluss" -- (t "form-course-of-studies")
+                                    -- , placeholder = "Informatik / Medieninformatik / Medizininformatik / ..."
+                                    , fieldType = "text"
+                                    , value = model.degree
+                                    }
+                                    (List.map subjectOption degrees)
+                                    --[ option [ value "Informatik" ] [ text "Informatik" ] ]
+                                    Degree
+                                    model.errors
+                                    SetField
+                            , div [ classes [ TC.fl, TC.w_100, TC.w_50_ns, TC.pl3_ns ] ]
+                              <|
+                                dropdownElement
                                     { label = (t "form-course-of-studies")
-                                    , placeholder = "Informatik / Medieninformatik / Medizininformatik / ..."
+                                    -- , placeholder = "Informatik / Medieninformatik / Medizininformatik / ..."
                                     , fieldType = "text"
                                     , value = model.subject
                                     }
+                                    (List.map subjectOption majors)
+                                    --[ option [ value "Informatik" ] [ text "Informatik" ] ]
                                     Subject
                                     model.errors
                                     SetField
-                            , div [ classes [ TC.fl, TC.w_100, TC.w_30_ns, TC.pl2_ns ] ]
+                            , div [ classes [ TC.fl, TC.w_100, TC.w_20_ns, TC.pl3_ns ] ]
                               -- Second element
                               <|
                                 inputElement
@@ -302,7 +359,7 @@ view sharedState model =
                                     model.errors
                                     SetField
                             ]
-                        , div [ classes [ TC.mt3, TC.cf, TC.ph2_ns ] ]
+                        , div [ classes [ TC.mt3, TC.cf, TC.ph3_ns ] ]
                             -- Thrid Row (Student Number)
                             [ div [ classes [ TC.fl, TC.w_100 ] ] <|
                                 inputElement
@@ -355,6 +412,17 @@ view sharedState model =
                                     model.errors
                                     SetField
                             ]
+                        ]
+                    , div [ classes [ TC.tl, TC.bn, TC.f6 ] ]
+                        [ div []
+                                ([ text "* Studiengang oder Abschluss nicht gefunden? "
+                                , text "Bitte an "
+                                --, a [ classes [ TC.link ] ] [text "info1-ws2021@informatik.uni-tuebingen.de"]
+                                , a [ classes [ TC.link ], href "mailto:info1-ws2021@informatik.uni-tuebingen.de?subject=[info1] Registrierung Infomark" ]
+                                    [text "info1-ws2021@informatik.uni-tuebingen.de"]
+                                , text " wenden. "
+                                , text "Geben Sie in diesem Fall in Ihrer E-Mail an uns den fehlenden Studiengang oder Abschluss an."
+                                ])
                         ]
                     , button
                         [ Styles.buttonGreyStyle
@@ -420,6 +488,7 @@ type Field
     | StudentNumber
     | Semester
     | Subject
+    | Degree
 
 
 setField : Model -> Field -> String -> Model
@@ -448,6 +517,9 @@ setField model field value =
 
         Subject ->
             { model | subject = value }
+
+        Degree ->
+            { model | degree = value }
 
 
 type alias Error =
@@ -480,6 +552,7 @@ modelValidator =
             , ifNotInt .studentNumber (\value -> ( StudentNumber, value ++ " ist keine gültige Zahl." ))
             , Validate.ifTrue (\model -> isNegative model.studentNumber) ( StudentNumber, "Matrikelnummern sind positiv." )
             ]
+        , ifBlank .degree ( Degree, "Bitte gib deinen angestrebten Abschluss ein." )
         , ifBlank .subject ( Subject, "Bitte gib dein Fach ein." )
         ]
 
