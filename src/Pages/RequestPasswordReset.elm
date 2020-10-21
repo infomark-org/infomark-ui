@@ -77,9 +77,15 @@ update sharedState msg model =
 
         RequestResetResponse (Failure err) ->
             let
+                errorString =
+                    case err of
+                        Http.BadStatus 422 ->
+                            "Your email is not confirmed!"
+                        _ ->
+                            "There was a problem requesting your password reset."
                 ( newModel, newCmd ) =
                     ( model, Cmd.none )
-                        |> addToast (Components.Toasty.Error "Error" "There was a problem requesting your password reset.")
+                        |> addToast (Components.Toasty.Error "Error" errorString)
             in
             ( newModel, newCmd, NoUpdate )
 
