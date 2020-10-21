@@ -163,12 +163,21 @@ view sharedState model =
             ]
             [ div
                 [ classes
-                    [ TC.w3
-                    , TC.dib
-                    , TC.mv4
-                    ]
+                    [ TC.dt, TC.center ]
                 ]
-                [ img [ src "/images/Logo.svg" ] [] ]
+                [ div
+                    [ classes
+                        [ TC.w3
+                        , TC.dib
+                        , TC.mv4
+                        , TC.dtc
+                        , TC.v_mid
+                        ]
+                    ]
+                    [ img [ src "/images/Logo.svg" ] []
+                    ]
+                , div [ classes [ TC.dtc, TC.v_mid, TC.pl3, TC.mw7, TC.center, TC.pa4, TC.black_40]] [text "Lehrstuhl für Datenbanksysteme (Prof. Torsten Grust)"]
+                ]
             , Html.form
                 [ classes
                     [ TC.mw7
