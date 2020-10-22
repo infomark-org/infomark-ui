@@ -551,25 +551,31 @@ navView sharedState model =
             , TC.bg_dark_red
             ]
         ]
-        [ input
-            [ type_ "image"
-            , src "/images/Logo_white.svg"
-            , onClick <| NavigateTo DashboardRoute
-            , classes
-                [ TC.link
-                , TC.pointer
-                , TC.no_underline
-                , TC.flex
-                , TC.items_center
-                , TC.pa3
-                , TC.w2
-                , TC.h2
-                , TC.dim
-                , TC.ml1
-                , TC.ml4_ns
+        [ div [ classes [TC.dt] ]
+            [
+              input
+                [ type_ "image"
+                , src "/images/Logo_white.svg"
+                , onClick <| NavigateTo DashboardRoute
+                , classes
+                    [ TC.link
+                    , TC.pointer
+                    , TC.no_underline
+                    , TC.flex
+                    , TC.items_center
+                    , TC.pa3
+                    , TC.w2
+                    , TC.h2
+                    , TC.dim
+                    , TC.ml1
+                    , TC.ml4_ns
+                    , TC.dtc
+                    , TC.v_mid
+                    ]
                 ]
+                []
+            , div [ classes [ TC.dtc, TC.v_mid, TC.f5, TC.white, TC.ph2, TC.pa3, TC.fw5]] [text "Lehrstuhl für Datenbanksysteme (Prof. Torsten Grust)"]
             ]
-            []
         , div
             [ classes
                 [ TC.flex
