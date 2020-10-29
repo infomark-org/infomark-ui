@@ -36,8 +36,8 @@ module Components.CommonElements exposing
     , textAreaElement
     , timeInputElement
     , viewFormErrors
-    , widePage
-    , widePage2
+    , widePage_mw8
+    , widePage_mw9
     )
 
 import Components.Dialog as Dialog
@@ -249,14 +249,14 @@ pageContainer childs =
         childs
 
 
-widePage : List (Html msg) -> Html msg
-widePage childs =
-    div [ classes [ TC.w_100, TC.ph4, TC.ph3_l, TC.center, TC.mw9_ns, TC.mw8_l ] ]
+widePage_mw8 : List (Html msg) -> Html msg
+widePage_mw8 childs =
+    div [ classes [ TC.w_100, TC.ph4, TC.ph3_l, TC.center, TC.mw8_l ] ]
         childs
 
 
-widePage2 : List (Html msg) -> Html msg
-widePage2 childs =
+widePage_mw9 : List (Html msg) -> Html msg
+widePage_mw9 childs =
     div [ classes [ TC.w_100, TC.ph4, TC.ph3_l, TC.center, TC.mw9_ns ] ]
         childs
 

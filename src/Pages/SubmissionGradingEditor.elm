@@ -180,7 +180,7 @@ update sharedState msg model =
 view : SharedState -> Model -> Html Msg
 view sharedState model =
     CE.pageContainer <|
-        [ CE.widePage2 <|
+        [ CE.widePage_mw9 <|
             case ( model.getGroupsResponse, model.getTaskResponse ) of
                 ( Success groups, Success task ) ->
                     let
