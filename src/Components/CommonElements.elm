@@ -36,7 +36,8 @@ module Components.CommonElements exposing
     , textAreaElement
     , timeInputElement
     , viewFormErrors
-    , widePage
+    , widePage_mw8
+    , widePage_mw9
     )
 
 import Components.Dialog as Dialog
@@ -165,7 +166,7 @@ textAreaElement inputConfig field errors msg =
     [ inputLabel inputConfig.label
     , textarea
         ([ Styles.lineInputStyle
-         , classes [ TC.w_100, TC.mb3 ]
+         , classes [ TC.ph2, TC.w_100, TC.mb3, TC.bg_black_10, TC.br3 ]
          , placeholder inputConfig.placeholder
          , onInput <| msg field
          , value inputConfig.value
@@ -248,9 +249,15 @@ pageContainer childs =
         childs
 
 
-widePage : List (Html msg) -> Html msg
-widePage childs =
-    div [ classes [ TC.w_100, TC.ph4, TC.ph3_l, TC.center, TC.mw9_ns, TC.mw8_l ] ]
+widePage_mw8 : List (Html msg) -> Html msg
+widePage_mw8 childs =
+    div [ classes [ TC.w_100, TC.ph4, TC.ph3_l, TC.center, TC.mw8_l ] ]
+        childs
+
+
+widePage_mw9 : List (Html msg) -> Html msg
+widePage_mw9 childs =
+    div [ classes [ TC.w_100, TC.ph4, TC.ph3_l, TC.center, TC.mw9_ns ] ]
         childs
 
 

@@ -71,7 +71,7 @@ import Components.CommonElements
         , searchElement
         , textAreaElement
         , timeInputElement
-        , widePage
+        , widePage_mw8
         )
 import Components.Groups.AdminView as GroupAdminView
 import Components.Groups.BiddingView as BiddingView
@@ -1112,7 +1112,7 @@ view sharedState model =
     case ( model.courseRoleRequest, model.courseRole ) of
         ( Success _, Just role ) ->
             pageContainer <|
-                [ widePage <| [ viewCourseInfo sharedState model ]
+                [ widePage_mw8 <| [ viewCourseInfo sharedState model ]
                 , viewExams sharedState model
                 , normalPage <|
                     [ viewSheets sharedState model

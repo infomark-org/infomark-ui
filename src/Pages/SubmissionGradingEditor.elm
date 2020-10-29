@@ -32,7 +32,7 @@ import Tachyons exposing (classes, tachyons)
 import Tachyons.Classes as TC
 import Time
 import Utils.Styles as Styles
-
+import Markdown as MD
 
 type Msg
     = NavigateTo Route
@@ -180,7 +180,7 @@ update sharedState msg model =
 view : SharedState -> Model -> Html Msg
 view sharedState model =
     CE.pageContainer <|
-        [ CE.normalPage <|
+        [ CE.widePage_mw9 <|
             case ( model.getGroupsResponse, model.getTaskResponse ) of
                 ( Success groups, Success task ) ->
                     let
@@ -337,17 +337,22 @@ viewTask sharedState model task grade feedback =
                         [ text "" ]
                )
             ++ [ CE.rRowExtraSpacing <|
-                    CE.r1Column <|
-                        CE.textAreaElement
+                    CE.r2Column
+                        (CE.textAreaElement
                             { label = "Feedback"
                             , placeholder = "Write some nice feedback for your student."
                             , value = feedback
-                            , rows = 2
+                            , rows = 8
                             }
                             (Feedback grade.id)
                             []
                             -- TODO do not ignore errors
-                            SetField
+                            SetField)
+                [ CE.inputLabel "Feedback Preview"
+                , CE.renderInTextBox
+                    (Maybe.withDefault "" <| Dict.get grade.id model.feedbackDict)
+                    True
+                ]
                , CE.rRowExtraSpacing <|
                     CE.sliderInputElement
                         { label = "Punkte"

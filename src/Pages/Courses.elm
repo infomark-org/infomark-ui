@@ -23,7 +23,7 @@ import Components.CommonElements
         , pageContainer
         , rRowHeaderActionButtons
         , simpleDialog
-        , widePage
+        , widePage_mw8
         )
 import Components.Dialog as Dialog
 import Components.Toasty
@@ -427,11 +427,11 @@ view sharedState model =
                 [ viewDisenrollCourseDialog sharedState model
                 , viewDeleteCourseDialog sharedState model
                 , Toasty.view Components.Toasty.config Components.Toasty.view ToastyMsg model.toasties
-                , widePage content
+                , widePage_mw8 content
                 ]
 
         ( _, _ ) ->
-            widePage []
+            widePage_mw8 []
 
 
 viewDeleteCourseDialog : SharedState -> Model -> Html Msg
