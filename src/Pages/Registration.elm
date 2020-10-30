@@ -195,6 +195,7 @@ majors = [ "Accounting and Finance"
          , "Medizininformatik (Uni Tübingen)"
          , "Medizintechnik (Uni Stuttgart)"
          , "Nanoscience"
+         , "Sinologie"
          ]
 
 degrees : List String
