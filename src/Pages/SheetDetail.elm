@@ -436,7 +436,7 @@ viewSheetDetail sharedState model =
             rContainer <|
                 [ rRowHeaderActionButtons detail.name
                     Styles.headerStyle
-                    ([ ( "Download", DownloadSheet model.course_id model.id, Styles.buttonGreenStyle )
+                    ([ -- ( "Download", DownloadSheet model.course_id model.id, Styles.buttonGreenStyle )
                      ]
                         ++ (if model.role == Just Admin then
                                 [ ( "Edit", NavigateTo <| EditSheetRoute model.course_id model.id, Styles.buttonGreyStyle ) ]
