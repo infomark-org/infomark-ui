@@ -17,7 +17,9 @@ import Api.Data.TaskRatingResponse exposing (TaskRatingResponse)
 import Api.Request.Task as TaskRequests
 import Components.CommonElements
     exposing
-        ( PbbButtonState(..)
+        ( dateElement
+        , datesDisplayContainer
+        , PbbButtonState(..)
         , PbbResultState(..)
         , PbbState(..)
         , fileUploader
@@ -47,6 +49,7 @@ import Tachyons exposing (classes)
 import Tachyons.Classes as TC
 import Time
 import Toasty
+import Utils.DateFormatter as DF
 import Utils.Styles as Styles
 import Utils.Utils exposing (delay, handleLogoutErrors, perform)
 
@@ -406,6 +409,15 @@ view sharedState model deadlineReached =
                             _ ->
                                 "Undefined"
                         )
+                    ]
+            , rRow <|
+                r1Column <|
+                    [ case model.gradeResponse of
+                        Success grade ->
+                            datesDisplayContainer <|
+                              dateElement "Die Abgabe wurde zuletzt bearbeitet am: " <|
+                                DF.dateAndTimeFormatter sharedState grade.updated_at
+                        _ -> text <| "Bisher wurde noch keine Datei abgegeben."
                     ]
             ]
                 ++ (case model.gradeResponse of
