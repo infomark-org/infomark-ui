@@ -1,14 +1,17 @@
 module Api.Data.Grade exposing (ExecutionState(..), Grade, TestStatus(..), decoder, encoder)
 
+import Iso8601
 import Api.Data.User as User exposing (User)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as Encode
 import Json.Encode.Extra exposing (maybe)
+import Time exposing (Posix)
 
 
 type alias Grade =
     { id : Int
+    , updated_at : Posix
     , public_execution_state : ExecutionState
     , private_execution_state : ExecutionState
     , public_test_log : String
@@ -28,6 +31,7 @@ decoder : Decoder Grade
 decoder =
     Decode.succeed Grade
         |> required "id" Decode.int
+        |> required "updated_at" Iso8601.decoder
         |> required "public_execution_state" executionStateDecoder
         |> required "private_execution_state" executionStateDecoder
         |> required "public_test_log" Decode.string
@@ -46,6 +50,7 @@ encoder : Grade -> Encode.Value
 encoder model =
     Encode.object
         [ ( "id", Encode.int model.id )
+        , ( "updated_at", Iso8601.encode model.updated_at )
         , ( "public_execution_state", executionStateEncoder model.public_execution_state )
         , ( "private_execution_state", executionStateEncoder model.private_execution_state )
         , ( "public_test_log", Encode.string model.public_test_log )
