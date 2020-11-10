@@ -485,7 +485,7 @@ updateHandleGradeResponse : SharedState -> Model -> WebData Grade -> ( Model, Cm
 updateHandleGradeResponse sharedState model response =
     case response of
         Success grade ->
-            if True || grade.public_execution_state == Grade.Finished then
+            if grade.public_execution_state == Grade.Finished then
                 ( { model
                     | gradeResponse = response
                   }
