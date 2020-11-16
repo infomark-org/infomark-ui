@@ -254,8 +254,7 @@ viewStudentSummary model summary =
                             th
                                 [ class "student-overview-head-vertical" ]
                                 [ div []
-                                    [ span [ class "student-overview-head-vertical-label" ]
-                                      [ text sheet.name ] ]
+                                    [ span [] [ text sheet.name ] ]
                                 ]
                         )
                         sheets
