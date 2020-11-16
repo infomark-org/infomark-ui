@@ -20,6 +20,7 @@ module Components.CommonElements exposing
     , r2Column
     , r3Column
     , rCollapsable
+    , rCollapsablePlain
     , rContainer
     , rRow
     , rRowButton
@@ -389,6 +390,43 @@ rCollapsable title collapsed collapseMsg ( show, hide ) childs =
                     hide
             ]
         ]
+        :: (if collapsed then
+                [ text "" ]
+
+            else
+                childs
+           )
+
+rCollapsablePlain : List (Html msg) -> Bool -> msg -> ( String, String ) -> List (Html msg) -> List (Html msg)
+rCollapsablePlain msgs collapsed collapseMsg ( show, hide ) childs =
+    div
+        [ classes
+            [ TC.w_100
+            , TC.flex
+            , TC.flex_row
+            , TC.justify_between
+            , TC.items_center
+            , if collapsed then
+                TC.mb3
+
+              else
+                TC.mb0
+            ]
+        ]
+        ( msgs ++
+        [ button
+            [ Styles.buttonGreyStyle
+            , Styles.pillStyle
+            , onClick collapseMsg
+            ]
+            [ text <|
+                if collapsed then
+                    show
+
+                else
+                    hide
+            ]
+        ] )
         :: (if collapsed then
                 [ text "" ]
 
