@@ -390,6 +390,12 @@ view sharedState model =
             ]
         ]
 
+type alias MaybePoints =
+    { acquired_points : Int
+    , max_points : Int
+    , graded : Int
+    , color : Attribute Msg
+    }
 
 viewSheetDetail : SharedState -> Model -> Html Msg
 viewSheetDetail sharedState model =
@@ -397,26 +403,31 @@ viewSheetDetail sharedState model =
         maybePoints =
             case model.pointOverviewResponse of
                 Success points ->
-                    points
-                        |> List.map (\p -> ( p.acquired_points, p.max_points ))
-                        |> List.foldl
-                            (\pt at ->
-                                Tuple.mapBoth
-                                    ((+) <| Tuple.first pt)
-                                    ((+) <| Tuple.second pt)
-                                    at
-                            )
-                            ( 0, 0 )
-                        |> (\pt ->
-                                ( Tuple.first pt
-                                , Tuple.second pt
-                                , case model.requiredPercentage of
+                    -- points
+                        --|> List.map (\p -> ( p.acquired_points, p.max_points ))
+                        --|> List.foldl
+                        --    (\pt at ->
+                        --        Tuple.mapBoth
+                        --            ((+) <| Tuple.first pt)
+                        --            ((+) <| Tuple.second pt)
+                        --            at
+                        --    )
+                        --    ( 0, 0 )
+                        ( List.sum <| List.map (\p -> p.acquired_points) points
+                        , List.sum <| List.map (\p -> p.max_points) points
+                        , List.sum <| List.map (\p -> p.max_points) <| List.filter (\p -> p.graded) points
+                        )
+                        |> (\(fst, snd, thrd) ->
+                                { acquired_points = fst
+                                , max_points = snd
+                                , graded = thrd
+                                , color = case model.requiredPercentage of
                                     Just percentage ->
                                         let
                                             acquiredPerc =
                                                 round <|
-                                                    (toFloat <| Tuple.first pt)
-                                                        / (toFloat <| Tuple.second pt)
+                                                    (toFloat <| fst)
+                                                        / (toFloat <| snd)
                                                         * 100
                                         in
                                         if acquiredPerc < percentage then
@@ -430,7 +441,7 @@ viewSheetDetail sharedState model =
 
                                     Nothing ->
                                         TC.dark_red
-                                )
+                                }
                            )
                         |> Just
 
@@ -467,15 +478,18 @@ viewSheetDetail sharedState model =
                                 ++ (dateElement "Maximale Punkte" <| text <| String.fromInt <| sumTasksPoints model)
                         ]
                         [ case maybePoints of
-                            Just ( acquired, max, color ) ->
+                            Just mp ->
                                 div []
                                     [ h4 [ classes [ TC.black, TC.fw6, TC.f5, TC.ttu, TC.lh_copy, TC.tracked, TC.mt3, TC.mb1 ] ]
                                         [ text "Erreichte Punkte" ]
-                                    , h1 [ classes [ color, TC.mt0 ], Styles.headerStyle ]
+                                    , h1 [ classes [ mp.color, TC.mt0, TC.f3 ], Styles.headerStyle ]
                                         [ text <|
-                                            (String.fromInt <| acquired)
+                                            (String.fromInt <| mp.acquired_points)
                                                 ++ "/"
-                                                ++ (String.fromInt <| max)
+                                                ++ (String.fromInt <| mp.graded)
+                                                ++ " (maximal erreichbar: "
+                                                ++ (String.fromInt <| mp.max_points)
+                                                ++ ")"
                                         ]
                                     ]
 
