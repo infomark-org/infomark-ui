@@ -393,7 +393,7 @@ view sharedState model =
 type alias MaybePoints =
     { acquired_points : Int
     , max_points : Int
-    , graded : Int
+    , achievable_points : Int
     , color : Attribute Msg
     }
 
@@ -403,24 +403,14 @@ viewSheetDetail sharedState model =
         maybePoints =
             case model.pointOverviewResponse of
                 Success points ->
-                    -- points
-                        --|> List.map (\p -> ( p.acquired_points, p.max_points ))
-                        --|> List.foldl
-                        --    (\pt at ->
-                        --        Tuple.mapBoth
-                        --            ((+) <| Tuple.first pt)
-                        --            ((+) <| Tuple.second pt)
-                        --            at
-                        --    )
-                        --    ( 0, 0 )
                         ( List.sum <| List.map (\p -> p.acquired_points) points
                         , List.sum <| List.map (\p -> p.max_points) points
-                        , List.sum <| List.map (\p -> p.max_points) <| List.filter (\p -> p.graded) points
+                        , List.sum <| List.map (\p -> p.achievable_points) points
                         )
                         |> (\(fst, snd, thrd) ->
                                 { acquired_points = fst
                                 , max_points = snd
-                                , graded = thrd
+                                , achievable_points = thrd
                                 , color = case model.requiredPercentage of
                                     Just percentage ->
                                         let
@@ -486,7 +476,7 @@ viewSheetDetail sharedState model =
                                         [ text <|
                                             (String.fromInt <| mp.acquired_points)
                                                 ++ "/"
-                                                ++ (String.fromInt <| mp.graded)
+                                                ++ (String.fromInt <| mp.achievable_points)
                                                 ++ " (maximal erreichbar: "
                                                 ++ (String.fromInt <| mp.max_points)
                                                 ++ ")"

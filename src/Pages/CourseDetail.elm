@@ -1480,7 +1480,7 @@ filterExam exams enrollments =
 type alias MaybePoints =
     { acquired_points : Int
     , max_points : Int
-    , graded : Int
+    , achievable_points : Int
     , color : Attribute Msg
     }
 
@@ -1496,12 +1496,12 @@ viewCourseInfo sharedState model =
                     else
                         ( List.sum <| List.map (\p -> p.acquired_points) points
                         , List.sum <| List.map (\p -> p.max_points) points
-                        , List.sum <| List.map (\p -> Maybe.withDefault 0 p.sheet_graded) points
+                        , List.sum <| List.map (\p -> p.achievable_points) points
                         )
                             |> (\ (fst, snd, thrd) ->
                                     { acquired_points = fst
                                     , max_points = snd
-                                    , graded = thrd
+                                    , achievable_points = thrd
                                     , color = let
                                                 acquiredPerc =
                                                     round <|
@@ -1540,7 +1540,7 @@ viewCourseInfo sharedState model =
                                                 [ text <|
                                                     (String.fromInt <| mp.acquired_points)
                                                         ++ "/"
-                                                        ++ (String.fromInt <| mp.graded)
+                                                        ++ (String.fromInt <| mp.achievable_points)
                                                         ++ " (maximal erreichbar: "
                                                         ++ (String.fromInt <| mp.max_points)
                                                         ++ ")"
@@ -1724,7 +1724,7 @@ viewSheets sharedState model =
                                 ( Maybe.withDefault -1 p.sheet_id
                                 , { acquired_points = p.acquired_points
                                   , max_points = p.max_points
-                                  , graded = Maybe.withDefault 0 p.sheet_graded
+                                  , achievable_points = p.achievable_points
                                   , color = if acquiredPerc < course.required_percentage then
                                                 classes (TC.red :: baseStyle)
 
@@ -1761,7 +1761,7 @@ viewSheets sharedState model =
                                                     ++ " - "
                                                     ++ (String.fromInt <| mp.acquired_points)
                                                     ++ "/"
-                                                    ++ (String.fromInt <| mp.graded)
+                                                    ++ (String.fromInt <| mp.achievable_points)
                                                     ++ " (maximal erreichbar: "
                                                     ++ (String.fromInt <| mp.max_points)
                                                     ++ ")"
