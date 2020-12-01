@@ -1477,13 +1477,6 @@ filterExam exams enrollments =
     List.map (\( use, id, exam ) -> ( id, exam ))
         (List.filter (\( use, id, exam ) -> use) examSuccess)
 
-type alias MaybePoints =
-    { acquired_points : Int
-    , max_points : Int
-    , achievable_points : Int
-    , color : Attribute Msg
-    }
-
 viewCourseInfo : SharedState -> Model -> Html Msg
 viewCourseInfo sharedState model =
     let

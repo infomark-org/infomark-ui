@@ -390,13 +390,6 @@ view sharedState model =
             ]
         ]
 
-type alias MaybePoints =
-    { acquired_points : Int
-    , max_points : Int
-    , achievable_points : Int
-    , color : Attribute Msg
-    }
-
 viewSheetDetail : SharedState -> Model -> Html Msg
 viewSheetDetail sharedState model =
     let
