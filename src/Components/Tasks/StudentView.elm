@@ -27,6 +27,7 @@ import Components.CommonElements
         , r1Column
         , r2Column
         , rCollapsable
+        , rCollapsablePlain
         , rContainer
         , rRow
         , rRowButton
@@ -307,8 +308,17 @@ update sharedState msg model =
 
 view : SharedState -> Model -> Bool -> Html Msg
 view sharedState model deadlineReached =
+    let upl = case model.gradeResponse of
+                Success grade ->
+                        h2 [ classes [TC.tl, TC.bn, TC.f6, TC.dark_green ] ]
+                        [ dd [ classes [ TC.ml0 ] ] [ text "Erfolgreich hochgeladen: ", DF.dateAndTimeFormatter sharedState grade.updated_at ] ]
+                _ -> h2 [ classes [TC.tl, TC.bn, TC.f6, TC.dark_red ] ] [ text "Noch nichts hochgeladen." ]
+    in
     rContainer <|
-        rCollapsable model.task.name
+        rCollapsablePlain
+            [ h1 [ Styles.listHeadingStyle ] [ text model.task.name ]
+            , upl
+            ]
             model.collapse
             ToggleCollapse
             ( "Show", "Hide" )
@@ -415,9 +425,9 @@ view sharedState model deadlineReached =
                     [ case model.gradeResponse of
                         Success grade ->
                             datesDisplayContainer <|
-                              dateElement "Die Abgabe wurde zuletzt bearbeitet am: " <|
+                              dateElement "Die Abgabe wurde zuletzt erfolgreich hochgeladen am: " <|
                                 DF.dateAndTimeFormatter sharedState grade.updated_at
-                        _ -> text <| "Bisher wurde noch keine Datei abgegeben."
+                        _ -> text <| "Bisher wurde noch keine Datei hochgeladen."
                     ]
             ]
                 ++ (case model.gradeResponse of

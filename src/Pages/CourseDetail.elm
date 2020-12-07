@@ -1487,36 +1487,31 @@ viewCourseInfo sharedState model =
                         Nothing
 
                     else
-                        points
-                            |> List.map (\p -> ( p.acquired_points, p.max_points ))
-                            |> List.foldl
-                                (\pt at ->
-                                    Tuple.mapBoth
-                                        ((+) <| Tuple.first pt)
-                                        ((+) <| Tuple.second pt)
-                                        at
+                        ( List.sum <| List.map (\p -> p.acquired_points) points
+                        , List.sum <| List.map (\p -> p.max_points) points
+                        , List.sum <| List.map (\p -> p.achievable_points) points
+                        )
+                            |> (\ (fst, snd, thrd) ->
+                                    { acquired_points = fst
+                                    , max_points = snd
+                                    , achievable_points = thrd
+                                    , color = let
+                                                acquiredPerc =
+                                                    round <|
+                                                        (toFloat <| fst)
+                                                            / (toFloat <| snd)
+                                                            * 100
+                                              in
+                                              if acquiredPerc < course.required_percentage then
+                                                TC.red
+
+                                              else if acquiredPerc < (course.required_percentage + 5) then
+                                                TC.gold
+
+                                              else
+                                                TC.dark_green
+                                    }
                                 )
-                                ( 0, 0 )
-                            |> (\pt ->
-                                    ( Tuple.first pt
-                                    , Tuple.second pt
-                                    , let
-                                        acquiredPerc =
-                                            round <|
-                                                (toFloat <| Tuple.first pt)
-                                                    / (toFloat <| Tuple.second pt)
-                                                    * 100
-                                      in
-                                      if acquiredPerc < course.required_percentage then
-                                        TC.red
-
-                                      else if acquiredPerc < (course.required_percentage + 5) then
-                                        TC.gold
-
-                                      else
-                                        TC.dark_green
-                                    )
-                               )
                             |> Just
 
                 ( _, _ ) ->
@@ -1532,13 +1527,16 @@ viewCourseInfo sharedState model =
                             (dateElement "Beginn " <| DF.fullDateFormatter sharedState course.begins_at)
                                 ++ (dateElement "Ende " <| DF.fullDateFormatter sharedState course.ends_at)
                                 ++ (case maybePoints of
-                                        Just ( acquired, max, color ) ->
+                                        Just mp ->
                                             [ dt [ classes [ TC.black, TC.fw6 ] ] [ text "Erreichte Punkte:" ]
-                                            , h1 [ classes [ color, TC.mt0 ], Styles.headerStyle ]
+                                            , h1 [ classes [ mp.color, TC.mt0, TC.f3 ], Styles.headerStyle ]
                                                 [ text <|
-                                                    (String.fromInt <| acquired)
+                                                    (String.fromInt <| mp.acquired_points)
                                                         ++ "/"
-                                                        ++ (String.fromInt <| max)
+                                                        ++ (String.fromInt <| mp.achievable_points)
+                                                        ++ " (maximal erreichbar: "
+                                                        ++ (String.fromInt <| mp.max_points)
+                                                        ++ ")"
                                                 ]
                                             ]
 
@@ -1717,17 +1715,18 @@ viewSheets sharedState model =
                                                 * 100
                                 in
                                 ( Maybe.withDefault -1 p.sheet_id
-                                , ( p.acquired_points
-                                  , p.max_points
-                                  , if acquiredPerc < course.required_percentage then
-                                        classes (TC.red :: baseStyle)
+                                , { acquired_points = p.acquired_points
+                                  , max_points = p.max_points
+                                  , achievable_points = p.achievable_points
+                                  , color = if acquiredPerc < course.required_percentage then
+                                                classes (TC.red :: baseStyle)
 
-                                    else if acquiredPerc < (course.required_percentage + 5) then
-                                        classes (TC.gold :: baseStyle)
+                                            else if acquiredPerc < (course.required_percentage + 5) then
+                                                classes (TC.gold :: baseStyle)
 
-                                    else
-                                        classes (TC.dark_green :: baseStyle)
-                                  )
+                                            else
+                                                classes (TC.dark_green :: baseStyle)
+                                   }
                                 )
                             )
                         |> Dict.fromList
@@ -1750,13 +1749,16 @@ viewSheets sharedState model =
                                 let
                                     toDisplay =
                                         case Dict.get sheet.id pointsDict of
-                                            Just ( acquired, max, labelStyle ) ->
+                                            Just mp ->
                                                 ( sheet.name
                                                     ++ " - "
-                                                    ++ String.fromInt acquired
+                                                    ++ (String.fromInt <| mp.acquired_points)
                                                     ++ "/"
-                                                    ++ String.fromInt max
-                                                , labelStyle
+                                                    ++ (String.fromInt <| mp.achievable_points)
+                                                    ++ " (maximal erreichbar: "
+                                                    ++ (String.fromInt <| mp.max_points)
+                                                    ++ ")"
+                                                , mp.color --labelStyle
                                                 )
 
                                             Nothing ->

@@ -7,6 +7,7 @@ import Json.Encode as Encode
 
 type alias PointOverview =
     { acquired_points : Int
+    , achievable_points : Int
     , max_points : Int
     , sheet_id : Maybe Int
     , task_id : Maybe Int
@@ -17,6 +18,7 @@ decoder : Decoder PointOverview
 decoder =
     Decode.succeed PointOverview
         |> required "acquired_points" Decode.int
+        |> required "achievable_points" Decode.int
         |> required "max_points" Decode.int
         |> optional "sheet_id" (Decode.nullable Decode.int) Nothing
         |> optional "task_id" (Decode.nullable Decode.int) Nothing
@@ -26,6 +28,7 @@ encoder : PointOverview -> Encode.Value
 encoder model =
     Encode.object
         [ ( "acquired_points", Encode.int model.acquired_points )
+        , ( "achievable_points", Encode.int model.achievable_points )
         , ( "max_points", Encode.int model.max_points )
         , case ( model.sheet_id, model.task_id ) of
             ( Just id, _ ) ->
