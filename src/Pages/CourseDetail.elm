@@ -1278,7 +1278,7 @@ viewExamsStudents sharedState model =
     else if Dict.isEmpty model.examEnrollments then
         div [ classes [ TC.w_100, "bg-light-gold", TC.pa4 ] ]
             [ normalPage <|
-                [ rRowHeader "Klausur"
+                [ rRowHeader "Prüfungsanmeldung"
                 , viewExamEnrollmentRequest sharedState model
                 , viewExamEnrollmentForm sharedState model
                 ]
@@ -1287,7 +1287,7 @@ viewExamsStudents sharedState model =
     else
         div [ classes [ TC.w_100, "bg-light-gold", TC.pa4 ] ]
             [ normalPage <|
-                [ rRowHeader "Klausur"
+                [ rRowHeader "Prüfungsanmeldung"
                 , viewExamEnrollmentForm sharedState model
                 ]
             ]
@@ -1297,17 +1297,13 @@ viewExamEnrollmentRequest : SharedState -> Model -> Html Msg
 viewExamEnrollmentRequest sharedState model =
     div [ classes [ "bg-dark-red", TC.pa2, TC.white_90 ] ]
         [ rRow
-            [ text "Sie sind bisher "
+            [ text "Du bist bisher "
             , span [ classes [ TC.b ] ] [ text "NICHT " ]
-            , text "zur Klausur angemeldet! "
-            , text "Sie dürfen nur mitschreiben, wenn Sie sich hier "
-            , text "anmelden!"
-            ]
-        , rRow
-            [ text "Wenn Sie sich zur Haptklausur anmelden und durchfallen, dürfen Sie automatisch die Nachklausur mitschreiben." ]
-        , rRow
-            [ text "Bitte melden Sie sich explizit nur zur Nachklausur an,"
-            , text " wenn Sie aus wichtigen Gründen die Hauptklausur nicht mitschreiben können."
+            , text "zur Prüfung angemeldet! "
+            , text "Du kannst in dieser Veranstaltung nur dann ECTS "
+            , text "erwerben, wenn Du Dich zuvor zur Prüfung angemeldet hast. "
+            , text "Ohne Anmeldung wird Deine Leistung im Übungsbetrieb zum "
+            , text "Ende des Semesters nicht gewertet."
             ]
         ]
 
@@ -1348,7 +1344,7 @@ viewExamEnrollmentForm sharedState model =
                                     div []
                                         [ viewExamDetails sharedState e
                                         , rRow <|
-                                            [ text "Sie haben nicht an dieser Klausur teilgenommen."
+                                            [ text "Du hast dich nicht zur Prüfung angemeldet."
                                             ]
                                         ]
 
@@ -1356,7 +1352,7 @@ viewExamEnrollmentForm sharedState model =
                                     div []
                                         [ viewExamDetails sharedState e
                                         , rRow <|
-                                            [ text "Sie haben mit der Note '"
+                                            [ text "Du hast mit der Note '"
                                             , span
                                                 [ classes [ TC.b ] ]
                                                 [ text enrollment.mark
@@ -1374,7 +1370,7 @@ viewExamEnrollmentForm sharedState model =
                                     div []
                                         [ viewExamDetails sharedState e
                                         , rRow <|
-                                            [ text "Sie sind mit der Note '"
+                                            [ text "Du bist mit der Note '"
                                             , span
                                                 [ classes [ TC.b ] ]
                                                 [ text enrollment.mark
@@ -1395,17 +1391,17 @@ viewExamEnrollmentForm sharedState model =
                                         ]
 
                         Nothing ->
-                            text "Gelöscht aus gründen"
+                            text ""
 
                 else
                     let
                         examInfo =
                             { label =
                                 e.name
-                                    ++ " "
-                                    ++ DF.shortDateFormatter sharedState e.exam_time
-                                    ++ " "
-                                    ++ DF.shortTimeFormatString sharedState e.exam_time
+                                    --++ " "
+                                    --++ DF.shortDateFormatter sharedState e.exam_time
+                                    --++ " "
+                                    --++ DF.shortTimeFormatString sharedState e.exam_time
                             , description = e.description
                             , isChecked = Dict.member id model.examEnrollments
                             , message = ToggleEnrollToExam id
@@ -1414,14 +1410,12 @@ viewExamEnrollmentForm sharedState model =
                         enrolledInfo =
                             if Dict.member id model.examEnrollments then
                                 span [ classes [ TC.dark_green ] ]
-                                    [ text "Sie sind zu der Klausur angemeldet. "
-                                    , text "Entfernen Sie das Häkchen, wenn Sie nicht mitschreiben möchten"
+                                    [ text "Du bist zur Prüfung angemeldet."
                                     ]
 
                             else
                                 span [ classes [ TC.dark_red ] ]
-                                    [ text "Sie sind NICHT zu der Klausur angemeldet. "
-                                    , text "Setzten Sie das Häkchen, wenn Sie mitschreiben möchten."
+                                    [ text "Du bist NICHT zur Prüfung angemeldet."
                                     ]
                     in
                     rRow
