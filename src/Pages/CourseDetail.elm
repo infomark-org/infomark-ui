@@ -1323,11 +1323,11 @@ viewExamDetails sharedState exam =
         [ span [ classes [ TC.b ] ]
             [ text exam.name
             ]
-        , text " am "
-        , span
-            [ classes [ TC.b ] ]
-            [ text (DF.shortDateFormatter sharedState exam.exam_time)
-            ]
+        --, text " am "
+        --, span
+        --    [ classes [ TC.b ] ]
+        --    [ text (DF.shortDateFormatter sharedState exam.exam_time)
+        --    ]
         ]
 
 
