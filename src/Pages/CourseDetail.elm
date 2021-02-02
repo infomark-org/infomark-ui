@@ -1344,7 +1344,7 @@ viewExamEnrollmentForm sharedState model =
                                     div []
                                         [ viewExamDetails sharedState e
                                         , rRow <|
-                                            [ text "Du hast dich nicht zur Prüfung angemeldet."
+                                            [ text "Du hast dich zur Prüfung angemeldet."
                                             ]
                                         ]
 
