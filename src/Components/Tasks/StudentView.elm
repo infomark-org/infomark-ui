@@ -40,6 +40,7 @@ import Components.Toasty
 import Debounce exposing (Debounce)
 import File exposing (File)
 import File.Select as Select
+import File.Download as Download
 import Html exposing (..)
 import Html.Events exposing (onClick)
 import Http
@@ -76,6 +77,7 @@ type Msg
     | DragLeave
     | NoOp
     | DebounceMsg Debounce.Msg
+    | DownloadSubmission String
 
 
 type alias Model =
@@ -302,6 +304,9 @@ update sharedState msg model =
             , NoUpdate
             )
 
+        DownloadSubmission url ->
+            ( model, Download.url url, NoUpdate )
+
         NoOp ->
             ( model, Cmd.none, NoUpdate )
 
@@ -390,22 +395,37 @@ view sharedState model deadlineReached =
                             model.uploadDoneTime
                             sharedState.currentTime
                 in
-                rRowButton <|
-                    PbbButton <|
-                        if success && stateShownLongEnough == Just False then
-                            PbbResult <| PbbSuccess "Success"
+                rRow <|
+                    r2Column
+                        [ rRowButton <|
+                            PbbButton <|
+                                if success && stateShownLongEnough == Just False then
+                                    PbbResult <| PbbSuccess "Success"
 
-                        else if failure && stateShownLongEnough == Just False then
-                            PbbResult <| PbbFailure "Failure"
+                                else if failure && stateShownLongEnough == Just False then
+                                    PbbResult <| PbbFailure "Failure"
 
-                        else if deadlineReached then
-                            PbbDisabled "Submission closed"
+                                else if deadlineReached then
+                                    PbbDisabled "Submission closed"
 
-                        else if not filesSelected then
-                            PbbDisabled "Upload"
+                                else if not filesSelected then
+                                    PbbDisabled "Upload"
 
-                        else
-                            PbbActive "Upload" UploadSubmission
+                                else
+                                    PbbActive "Upload" UploadSubmission
+                        ]
+                        (case model.gradeResponse of
+                            Success grade ->
+                                case grade.file_url of
+                                    Just url -> if String.isEmpty url then
+                                                    []
+                                                else
+                                                    [ rRowButton <|
+                                                        PbbButton <|
+                                                            PbbActive "Download Submission" (DownloadSubmission url)
+                                                    ]
+                                    _ -> []
+                            _ -> [])
             --, rRow <|
             --    r1Column <|
             --        [ inputLabel "Test Results"
