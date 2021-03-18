@@ -486,7 +486,7 @@ renderInTextBox content renderMarkdown =
 
 renderInTerminalBox : String -> Html msg
 renderInTerminalBox content =
-    pre [ classes [ TC.pa4, TC.bg_black_90, TC.near_white, TC.shadow_5, TC.br3, TC.overflow_scroll, TC.f7 ] ]
+    pre [ classes [ TC.pa4, TC.bg_black_90, TC.near_white, TC.shadow_5, TC.br3, TC.overflow_scroll, TC.f5 ] ]
         [ text content
         ]
 
