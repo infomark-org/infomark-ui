@@ -461,7 +461,7 @@ update sharedState msg model =
                                     (\e ->
                                         ( e.id, e )
                                     )
-                                    exams
+                                    (List.filter (\en -> en.course_id == model.courseId) exams)
                                 )
 
                         datePickers =
@@ -538,7 +538,7 @@ update sharedState msg model =
                                     (\en ->
                                         ( en.exam_id, en )
                                     )
-                                    enrollments
+                                    (List.filter (\en -> en.course_id == model.courseId) enrollments)
                                 )
                     in
                     ( { model | examEnrollments = examEnrollments }
