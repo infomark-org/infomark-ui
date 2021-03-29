@@ -1664,7 +1664,7 @@ viewDetermineGroupDisplay courseRole sharedState model =
     case model.groupModel of
         Just (BiddingModel biddingModel) ->
             rContainer <|
-                [ rRowHeader "Gruppen Präferenzen"
+                [ rRowHeader "Teilnahme an Tutorien"
                 , BiddingView.view sharedState biddingModel
                     |> Html.map BiddingMsg
                     |> Html.map GroupMsg
