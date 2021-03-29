@@ -20,6 +20,7 @@ import Components.CommonElements
     exposing
         ( inputElement
         , r1Column
+        , r2Column
         , r3Column
         , rContainer
         , rRow
@@ -272,7 +273,7 @@ view sharedState model =
         groupChunks =
             model.groupMsgHandlers
                 |> Dict.values
-                |> split 3
+                |> split 2
     in
     rContainer <|
         List.map
@@ -287,17 +288,17 @@ view sharedState model =
 
                     c1 :: c2 :: [] ->
                         rRow <|
-                            r3Column
+                            r2Column
                                 [ viewGroupBid sharedState model c1 ]
                                 [ viewGroupBid sharedState model c2 ]
-                                [ div [ classes [ TC.db, TC.w_100 ] ] [] ]
+                                --[ div [ classes [ TC.db, TC.w_100 ] ] [] ]
 
                     c1 :: [] ->
                         rRow <|
-                            r3Column
+                            r2Column
                                 [ viewGroupBid sharedState model c1 ]
                                 [ div [ classes [ TC.db, TC.w_100 ] ] [] ]
-                                [ div [ classes [ TC.db, TC.w_100 ] ] [] ]
+                                --[ div [ classes [ TC.db, TC.w_100 ] ] [] ]
 
                     _ ->
                         text ""
@@ -318,10 +319,10 @@ viewGroupBid sharedState model data =
             in
             div [ classes [ TC.w_100, TC.ph2 ] ] <|
                 [ h3 [ Styles.listHeadingStyle ]
-                    [ text <| "Group - " ++ tutor.firstname ++ " " ++ tutor.lastname
+                    [ text <| group.description -- text <| "Group - " ++ tutor.firstname ++ " " ++ tutor.lastname
                     ]
-                , span [ Styles.textStyle, classes [ TC.mb3, TC.db ] ]
-                    [ text <| group.description ]
+                --, span [ Styles.textStyle, classes [ TC.mb3, TC.db ] ]
+                --    [ text <| group.description ]
                 ]
                     ++ sliderInputElement
                         { label = "Präferenz (1 = Nein, 10 = Unbedingt)"
