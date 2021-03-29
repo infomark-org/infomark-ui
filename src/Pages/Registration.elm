@@ -202,6 +202,7 @@ degrees : List String
 degrees = [ "Bachelor of Science"
           , "Master of Science"
           , "Bachelor of Education"
+          , "Master of Education"
           , "Bachelor of Arts"
           , "Master of Arts"
           , "PhD"
