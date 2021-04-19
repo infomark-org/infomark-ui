@@ -426,6 +426,7 @@ fillGradeDict model =
     case model.getGradesResponse of
         Success grades ->
             grades
+                |> List.filter (\g -> not (String.contains "Fehlerhafte Abgabe!" g.public_test_log))
                 |> List.map (\g -> ( g.id, g ))
                 |> Dict.fromList
                 |> Tuple.pair

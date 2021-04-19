@@ -315,8 +315,11 @@ view : SharedState -> Model -> Bool -> Html Msg
 view sharedState model deadlineReached =
     let upl = case model.gradeResponse of
                 Success grade ->
-                        h2 [ classes [TC.tl, TC.bn, TC.f6, TC.dark_green ] ]
-                        [ dd [ classes [ TC.ml0 ] ] [ text "Erfolgreich hochgeladen: ", DF.dateAndTimeFormatter sharedState grade.updated_at ] ]
+                        if String.contains "Fehlerhafte Abgabe!" grade.public_test_log
+                        then h2 [ classes [TC.tl, TC.bn, TC.f6, TC.dark_red ] ]
+                                [ dd [ classes [ TC.ml0 ] ] [ text "Fehlerhaft hochgeladen: ", DF.dateAndTimeFormatter sharedState grade.updated_at ] ]
+                        else h2 [ classes [TC.tl, TC.bn, TC.f6, TC.dark_green ] ]
+                                [ dd [ classes [ TC.ml0 ] ] [ text "Erfolgreich hochgeladen: ", DF.dateAndTimeFormatter sharedState grade.updated_at ] ]
                 _ -> h2 [ classes [TC.tl, TC.bn, TC.f6, TC.dark_red ] ] [ text "Noch nichts hochgeladen." ]
     in
     rContainer <|
@@ -445,9 +448,13 @@ view sharedState model deadlineReached =
                 r1Column <|
                     [ case model.gradeResponse of
                         Success grade ->
-                            datesDisplayContainer <|
-                              dateElement "Die Abgabe wurde zuletzt erfolgreich hochgeladen am: " <|
-                                DF.dateAndTimeFormatter sharedState grade.updated_at
+                            if String.contains "Fehlerhafte Abgabe!" grade.public_test_log
+                            then datesDisplayContainer <|
+                                    dateElement "Die Abgabe wurde zuletzt fehlerhaft hochgeladen am: " <|
+                                        DF.dateAndTimeFormatter sharedState grade.updated_at
+                            else datesDisplayContainer <|
+                                    dateElement "Die Abgabe wurde zuletzt erfolgreich hochgeladen am: " <|
+                                        DF.dateAndTimeFormatter sharedState grade.updated_at
                         _ -> text <| "Bisher wurde noch keine Datei hochgeladen."
                     ]
             ]
@@ -476,6 +483,10 @@ view sharedState model deadlineReached =
                         _ ->
                             [ text "" ]
                    )
+                ++ [ rRow <|
+                        r1Column <|
+                            [ h2 [ classes [ TC.tl, TC.bn, TC.dark_red ] ] [text <| "Hinweis: Fehlerhafte Abgaben werden mit 0 Punkten bewertet!" ] ]
+                   ]
                 ++ [ rRow <|
                         r1Column <|
                             sliderInputElement
