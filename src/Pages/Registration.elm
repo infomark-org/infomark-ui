@@ -284,174 +284,174 @@ view sharedState model =
                         ]
                         [ text (t "page-title-registration") ]
                     , div [ classes [ TC.tl, TC.bn, TC.f6 ] ]
-                        --[ div []
-                        --        ([ text "Hinweis: Die Registrierung ist geschlossen. "]
-                        --        ++
-                        --        [ text "Kontakt: "
-                        --        --, a [ classes [ TC.link ] ] [text "info1-ws2021@informatik.uni-tuebingen.de"]
-                        --        , a [ classes [ TC.link ], href "mailto:info2-ss2021@informatik.uni-tuebingen.de?subject=[info1] Registrierung Infomark" ]
-                        --            [text "info2-ss2021@informatik.uni-tuebingen.de"]
-                        --        ])
-                        --]
                         [ div []
-                                ([ text "Hinweis: Zur Registrierung "
-                                , b [ classes [ ] ] [ text "muss" ]
-                                , text " die universitäre E-Mail-Adresse (...@student.uni-tuebingen.de) verwendet werden. "
-                                ]
+                                ([ text "Hinweis: Die Registrierung ist geschlossen. "]
                                 ++
-                                [ text "Falls diese noch nicht vergeben wurde, bitte an "
+                                [ text "Kontakt: "
                                 --, a [ classes [ TC.link ] ] [text "info1-ws2021@informatik.uni-tuebingen.de"]
                                 , a [ classes [ TC.link ], href "mailto:info2-ss2021@informatik.uni-tuebingen.de?subject=[Informatik 2] Registrierung Infomark" ]
                                     [text "info2-ss2021@informatik.uni-tuebingen.de"]
-                                , text " wenden. "
-                                , text "Geben Sie in diesem Fall in Ihrer E-Mail an uns die folgenden Daten an: "
-                                , text "Vorname, Nachname, Studiengang, Semester, Matrikelnummer (falls vorhanden)."
                                 ])
                         ]
-                     --TODO: Replace with translation
-                    , div [ classes [ TC.w_100 ] ]
-                        -- GRID!
-                        [ div [ classes [ TC.mt4, TC.cf, TC.ph2_ns ] ]
-                            -- First Row (First name, Last Name)
-                            [ div [ classes [ TC.fl, TC.w_100, TC.w_50_ns ] ]
-                              -- First element
-                              <|
-                                inputElement
-                                    { label = (t "form-firstname")
-                                    , placeholder = (t "form-firstname")
-                                    , fieldType = "text"
-                                    , value = model.firstName
-                                    }
-                                    FirstName
-                                    model.errors
-                                    SetField
-                            , div [ classes [ TC.fl, TC.w_100, TC.w_50_ns, TC.pl2_ns ] ]
-                              -- Second element
-                              <|
-                                inputElement
-                                    { label = (t "form-lastname")
-                                    , placeholder = (t "form-lastname")
-                                    , fieldType = "text"
-                                    , value = model.lastName
-                                    }
-                                    LastName
-                                    model.errors
-                                    SetField
-                            ]
-                        , div [ classes [ TC.mt3, TC.cf, TC.ph2_ns ] ]
-                            -- Second Row (Subject, Semester number)
-                            [ div [ classes [ TC.fl, TC.w_100, TC.w_30_ns ] ]
-                              -- First element
-                              <|
-                                dropdownElement
-                                    { label = "Abschluss" -- (t "form-course-of-studies")
-                                    -- , placeholder = "Informatik / Medieninformatik / Medizininformatik / ..."
-                                    , fieldType = "text"
-                                    , value = model.degree
-                                    }
-                                    (List.map subjectOption degrees)
-                                    --[ option [ value "Informatik" ] [ text "Informatik" ] ]
-                                    Degree
-                                    model.errors
-                                    SetField
-                            , div [ classes [ TC.fl, TC.w_100, TC.w_50_ns, TC.pl3_ns ] ]
-                              <|
-                                dropdownElement
-                                    { label = (t "form-course-of-studies")
-                                    -- , placeholder = "Informatik / Medieninformatik / Medizininformatik / ..."
-                                    , fieldType = "text"
-                                    , value = model.subject
-                                    }
-                                    (List.map subjectOption majors)
-                                    --[ option [ value "Informatik" ] [ text "Informatik" ] ]
-                                    Subject
-                                    model.errors
-                                    SetField
-                            , div [ classes [ TC.fl, TC.w_100, TC.w_20_ns, TC.pl3_ns ] ]
-                              -- Second element
-                              <|
-                                inputElement
-                                    { label = (t "form-semester")
-                                    , placeholder = "1"
-                                    , fieldType = "number"
-                                    , value = model.semester
-                                    }
-                                    Semester
-                                    model.errors
-                                    SetField
-                            ]
-                        , div [ classes [ TC.mt3, TC.cf, TC.ph3_ns ] ]
-                            -- Thrid Row (Student Number)
-                            [ div [ classes [ TC.fl, TC.w_100 ] ] <|
-                                inputElement
-                                    { label = (t "form-matriculation-number")
-                                    , placeholder = "000000 (Uni Tübingen)"
-                                    , fieldType = "number"
-                                    , value = model.studentNumber
-                                    }
-                                    StudentNumber
-                                    model.errors
-                                    SetField
-                            ]
-                        , div [ classes [ TC.mt3, TC.cf, TC.ph2_ns ] ]
-                            -- Fourth Row (Email)
-                            [ div [ classes [ TC.fl, TC.w_100 ] ] <|
-                                inputElement
-                                    { label = (t "mail-address")
-                                    , placeholder = "Email"
-                                    , fieldType = "email"
-                                    , value = model.email
-                                    }
-                                    Email
-                                    model.errors
-                                    SetField
-                            ]
-                        , div [ classes [ TC.mt3, TC.cf, TC.ph2_ns ] ]
-                            -- Fifth Row (Password, Password)
-                            [ div [ classes [ TC.fl, TC.w_100, TC.w_50_ns ] ]
-                              -- First element
-                              <|
-                                inputElement
-                                    { label = (t "password")
-                                    , placeholder = (t "password")
-                                    , fieldType = "password"
-                                    , value = model.password
-                                    }
-                                    Password
-                                    model.errors
-                                    SetField
-                            , div [ classes [ TC.fl, TC.w_100, TC.w_50_ns, TC.pl2_ns ] ]
-                              -- Second element
-                              <|
-                                inputElement
-                                    { label = (t "form-repeat-password")
-                                    , placeholder = "Password"
-                                    , fieldType = "password"
-                                    , value = model.passwordRepeat
-                                    }
-                                    PasswordRepeat
-                                    model.errors
-                                    SetField
-                            ]
-                        ]
-                    , div [ classes [ TC.tl, TC.bn, TC.f6 ] ]
-                        [ div []
-                                ([ text "* Studiengang oder Abschluss nicht gefunden? "
-                                , text "Bitte an "
-                                --, a [ classes [ TC.link ] ] [text "info1-ws2021@informatik.uni-tuebingen.de"]
-                                , a [ classes [ TC.link ], href "mailto:info2-ss2021@informatik.uni-tuebingen.de?subject=[Informatik 2] Registrierung Infomark" ]
-                                    [text "info2-ss2021@informatik.uni-tuebingen.de"]
-                                , text " wenden. "
-                                , text "Geben Sie in diesem Fall in Ihrer E-Mail an uns den fehlenden Studiengang oder Abschluss an."
-                                ])
-                        ]
-                    , button
-                        [ Styles.buttonGreyStyle
-                        , classes [ TC.mt4, TC.w_100 ]
-                        ]
-                        [ text (t "form-register") ]
+                --        [ div []
+                --                ([ text "Hinweis: Zur Registrierung "
+                --                , b [ classes [ ] ] [ text "muss" ]
+                --                , text " die universitäre E-Mail-Adresse (...@student.uni-tuebingen.de) verwendet werden. "
+                --                ]
+                --                ++
+                --                [ text "Falls diese noch nicht vergeben wurde, bitte an "
+                --                --, a [ classes [ TC.link ] ] [text "info1-ws2021@informatik.uni-tuebingen.de"]
+                --                , a [ classes [ TC.link ], href "mailto:info2-ss2021@informatik.uni-tuebingen.de?subject=[Informatik 2] Registrierung Infomark" ]
+                --                    [text "info2-ss2021@informatik.uni-tuebingen.de"]
+                --                , text " wenden. "
+                --                , text "Geben Sie in diesem Fall in Ihrer E-Mail an uns die folgenden Daten an: "
+                --                , text "Vorname, Nachname, Studiengang, Semester, Matrikelnummer (falls vorhanden)."
+                --                ])
+                --        ]
+                --     --TODO: Replace with translation
+                --    , div [ classes [ TC.w_100 ] ]
+                --        -- GRID!
+                --        [ div [ classes [ TC.mt4, TC.cf, TC.ph2_ns ] ]
+                --            -- First Row (First name, Last Name)
+                --            [ div [ classes [ TC.fl, TC.w_100, TC.w_50_ns ] ]
+                --              -- First element
+                --              <|
+                --                inputElement
+                --                    { label = (t "form-firstname")
+                --                    , placeholder = (t "form-firstname")
+                --                    , fieldType = "text"
+                --                    , value = model.firstName
+                --                    }
+                --                    FirstName
+                --                    model.errors
+                --                    SetField
+                --            , div [ classes [ TC.fl, TC.w_100, TC.w_50_ns, TC.pl2_ns ] ]
+                --              -- Second element
+                --              <|
+                --                inputElement
+                --                    { label = (t "form-lastname")
+                --                    , placeholder = (t "form-lastname")
+                --                    , fieldType = "text"
+                --                    , value = model.lastName
+                --                    }
+                --                    LastName
+                --                    model.errors
+                --                    SetField
+                --            ]
+                --        , div [ classes [ TC.mt3, TC.cf, TC.ph2_ns ] ]
+                --            -- Second Row (Subject, Semester number)
+                --            [ div [ classes [ TC.fl, TC.w_100, TC.w_30_ns ] ]
+                --              -- First element
+                --              <|
+                --                dropdownElement
+                --                    { label = "Abschluss" -- (t "form-course-of-studies")
+                --                    -- , placeholder = "Informatik / Medieninformatik / Medizininformatik / ..."
+                --                    , fieldType = "text"
+                --                    , value = model.degree
+                --                    }
+                --                    (List.map subjectOption degrees)
+                --                    --[ option [ value "Informatik" ] [ text "Informatik" ] ]
+                --                    Degree
+                --                    model.errors
+                --                    SetField
+                --            , div [ classes [ TC.fl, TC.w_100, TC.w_50_ns, TC.pl3_ns ] ]
+                --              <|
+                --                dropdownElement
+                --                    { label = (t "form-course-of-studies")
+                --                    -- , placeholder = "Informatik / Medieninformatik / Medizininformatik / ..."
+                --                    , fieldType = "text"
+                --                    , value = model.subject
+                --                    }
+                --                    (List.map subjectOption majors)
+                --                    --[ option [ value "Informatik" ] [ text "Informatik" ] ]
+                --                    Subject
+                --                    model.errors
+                --                    SetField
+                --            , div [ classes [ TC.fl, TC.w_100, TC.w_20_ns, TC.pl3_ns ] ]
+                --              -- Second element
+                --              <|
+                --                inputElement
+                --                    { label = (t "form-semester")
+                --                    , placeholder = "1"
+                --                    , fieldType = "number"
+                --                    , value = model.semester
+                --                    }
+                --                    Semester
+                --                    model.errors
+                --                    SetField
+                --            ]
+                --        , div [ classes [ TC.mt3, TC.cf, TC.ph3_ns ] ]
+                --            -- Thrid Row (Student Number)
+                --            [ div [ classes [ TC.fl, TC.w_100 ] ] <|
+                --                inputElement
+                --                    { label = (t "form-matriculation-number")
+                --                    , placeholder = "000000 (Uni Tübingen)"
+                --                    , fieldType = "number"
+                --                    , value = model.studentNumber
+                --                    }
+                --                    StudentNumber
+                --                    model.errors
+                --                    SetField
+                --            ]
+                --        , div [ classes [ TC.mt3, TC.cf, TC.ph2_ns ] ]
+                --            -- Fourth Row (Email)
+                --            [ div [ classes [ TC.fl, TC.w_100 ] ] <|
+                --                inputElement
+                --                    { label = (t "mail-address")
+                --                    , placeholder = "Email"
+                --                    , fieldType = "email"
+                --                    , value = model.email
+                --                    }
+                --                    Email
+                --                    model.errors
+                --                    SetField
+                --            ]
+                --        , div [ classes [ TC.mt3, TC.cf, TC.ph2_ns ] ]
+                --            -- Fifth Row (Password, Password)
+                --            [ div [ classes [ TC.fl, TC.w_100, TC.w_50_ns ] ]
+                --              -- First element
+                --              <|
+                --                inputElement
+                --                    { label = (t "password")
+                --                    , placeholder = (t "password")
+                --                    , fieldType = "password"
+                --                    , value = model.password
+                --                    }
+                --                    Password
+                --                    model.errors
+                --                    SetField
+                --            , div [ classes [ TC.fl, TC.w_100, TC.w_50_ns, TC.pl2_ns ] ]
+                --              -- Second element
+                --              <|
+                --                inputElement
+                --                    { label = (t "form-repeat-password")
+                --                    , placeholder = "Password"
+                --                    , fieldType = "password"
+                --                    , value = model.passwordRepeat
+                --                    }
+                --                    PasswordRepeat
+                --                    model.errors
+                --                    SetField
+                --            ]
+                --        ]
+                --    , div [ classes [ TC.tl, TC.bn, TC.f6 ] ]
+                --        [ div []
+                --                ([ text "* Studiengang oder Abschluss nicht gefunden? "
+                --                , text "Bitte an "
+                --                --, a [ classes [ TC.link ] ] [text "info1-ws2021@informatik.uni-tuebingen.de"]
+                --                , a [ classes [ TC.link ], href "mailto:info2-ss2021@informatik.uni-tuebingen.de?subject=[Informatik 2] Registrierung Infomark" ]
+                --                    [text "info2-ss2021@informatik.uni-tuebingen.de"]
+                --                , text " wenden. "
+                --                , text "Geben Sie in diesem Fall in Ihrer E-Mail an uns den fehlenden Studiengang oder Abschluss an."
+                --                ])
+                --        ]
+                --    , button
+                --        [ Styles.buttonGreyStyle
+                --        , classes [ TC.mt4, TC.w_100 ]
+                --        ]
+                --        [ text (t "form-register") ]
 
-                    -- TODO: Replace with translation
+                --    -- TODO: Replace with translation
                     ]
                 , div [ classes [ TC.mt3 ] ]
                     [ button [ onClick <| NavigateTo LoginRoute, Styles.linkGreyStyle ] [ text (t "form-login") ] --TODO: Replace with translation
