@@ -143,7 +143,7 @@ update sharedState msg model =
                 , uploading = Success ()
               }
             , delay 1000 UpdateGrade
-            , ShowToast <| Components.Toasty.Success "Success" "Your files have been uploaded"
+            , ShowToast <| Components.Toasty.Info "Info" "Your files have been uploaded and will be validated."
             )
 
         UploadSubmissionResponse response ->
