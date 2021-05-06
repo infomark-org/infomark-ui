@@ -318,8 +318,12 @@ view sharedState model deadlineReached =
                         if String.contains "Fehlerhafte Abgabe!" grade.public_test_log
                         then h2 [ classes [TC.tl, TC.bn, TC.f6, TC.dark_red ] ]
                                 [ dd [ classes [ TC.ml0 ] ] [ text "Fehlerhaft hochgeladen: ", DF.dateAndTimeFormatter sharedState grade.updated_at ] ]
-                        else h2 [ classes [TC.tl, TC.bn, TC.f6, TC.dark_green ] ]
-                                [ dd [ classes [ TC.ml0 ] ] [ text "Erfolgreich hochgeladen: ", DF.dateAndTimeFormatter sharedState grade.updated_at ] ]
+                        else
+                            if String.contains "submission received and will be tested" grade.public_test_log
+                            then h2 [ classes [TC.tl, TC.bn, TC.f6, TC.dark_red ] ]
+                                    [ dd [ classes [ TC.ml0 ] ] [ text "Validierung der Abgabe steht noch aus: ", DF.dateAndTimeFormatter sharedState grade.updated_at ] ]
+                            else h2 [ classes [TC.tl, TC.bn, TC.f6, TC.dark_green ] ]
+                                    [ dd [ classes [ TC.ml0 ] ] [ text "Erfolgreich hochgeladen: ", DF.dateAndTimeFormatter sharedState grade.updated_at ] ]
                 _ -> h2 [ classes [TC.tl, TC.bn, TC.f6, TC.dark_red ] ] [ text "Noch nichts hochgeladen." ]
     in
     rContainer <|
@@ -403,7 +407,7 @@ view sharedState model deadlineReached =
                         [ rRowButton <|
                             PbbButton <|
                                 if success && stateShownLongEnough == Just False then
-                                    PbbResult <| PbbSuccess "Success"
+                                    PbbResult <| PbbFailure "ZIP-Check läuft.."
 
                                 else if failure && stateShownLongEnough == Just False then
                                     PbbResult <| PbbFailure "Failure"
@@ -452,9 +456,13 @@ view sharedState model deadlineReached =
                             then datesDisplayContainer <|
                                     dateElement "Die Abgabe wurde zuletzt fehlerhaft hochgeladen am: " <|
                                         DF.dateAndTimeFormatter sharedState grade.updated_at
-                            else datesDisplayContainer <|
-                                    dateElement "Die Abgabe wurde zuletzt erfolgreich hochgeladen am: " <|
-                                        DF.dateAndTimeFormatter sharedState grade.updated_at
+                            else if String.contains "submission received and will be tested" grade.public_test_log
+                                then datesDisplayContainer <|
+                                        dateElement "Validierung der Abgabe steht noch aus: " <|
+                                            DF.dateAndTimeFormatter sharedState grade.updated_at
+                                else datesDisplayContainer <|
+                                        dateElement "Die Abgabe wurde zuletzt erfolgreich hochgeladen am: " <|
+                                            DF.dateAndTimeFormatter sharedState grade.updated_at
                         _ -> text <| "Bisher wurde noch keine Datei hochgeladen."
                     ]
             ]
