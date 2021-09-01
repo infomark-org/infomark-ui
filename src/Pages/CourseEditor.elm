@@ -65,6 +65,7 @@ type alias Model =
     , courseName : String
     , description : String
     , required_percentage : Maybe String
+    , max_team_size : Int
     , errors : List Error
     , getCourseResponse : WebData Course
     , beginsAtDate : Maybe Date
@@ -111,6 +112,7 @@ initModel =
       , courseName = ""
       , description = ""
       , required_percentage = Nothing
+      , max_team_size = 1
       , errors = []
       , getCourseResponse = NotAsked
       , beginsAtDatepicker = beginDatePicker
@@ -198,12 +200,11 @@ update sharedState msg model =
                             fillRequestFromModel model
                     in
                     ( { model | errors = [] }
-                    , case model.createCourse of
-                        True ->
-                            CoursesRequest.coursesPost body CourseCreateResponse
+                    , if model.createCourse then
+                        CoursesRequest.coursesPost body CourseCreateResponse
 
-                        False ->
-                            CoursesRequest.coursePut model.id body CourseEditResponse
+                      else
+                        CoursesRequest.coursePut model.id body CourseEditResponse
                     , NoUpdate
                     )
 
@@ -393,6 +394,11 @@ viewForm sharedState model =
                 viewRequiredPercentage model
             , viewFormErrors RequiredPercentage model.errors
             ]
+        , rRow
+            [ div [ classes [ TC.h3, TC.flex, TC.justify_between, TC.items_center ] ] <|
+                viewMaxTeamSize model
+            , viewFormErrors MaxTeamSize model.errors
+            ]
         , rRowButton <|
             PbbButton <|
                 PbbActive
@@ -441,6 +447,28 @@ viewRequiredPercentage model =
     ]
 
 
+viewMaxTeamSize : Model -> List (Html Msg)
+viewMaxTeamSize model =
+    let
+        label =
+            "Max Team Size"
+
+        numberSelector =
+            input
+                [ type_ "number"
+                , Styles.lineInputStyle
+                , classes [ TC.w_10, TC.tc ]
+                , placeholder "Max Team Size"
+                , onInput <| SetField MaxTeamSize
+                , value <| String.fromInt model.max_team_size
+                ]
+                []
+    in
+    [ text label
+    , numberSelector
+    ]
+
+
 addToast : Components.Toasty.Toast -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 addToast toast ( model, cmd ) =
     Toasty.addToastIfUnique Components.Toasty.config ToastyMsg toast ( model, cmd )
@@ -472,6 +500,7 @@ fillModelFromResponse sharedState course model =
                     Just <| String.fromInt num
             )
                 course.required_percentage
+        , max_team_size = course.max_team_size
     }
 
 
@@ -506,6 +535,7 @@ fillRequestFromModel model =
         Maybe.withDefault 0 <|
             String.toInt <|
                 Maybe.withDefault "0" model.required_percentage
+    , max_team_size = model.max_team_size
     }
 
 
@@ -513,6 +543,7 @@ type Field
     = Name
     | Description
     | RequiredPercentage
+    | MaxTeamSize
     | BeginsAtDate
     | EndsAtDate
 
@@ -528,6 +559,18 @@ setField model field value =
 
         RequiredPercentage ->
             { model | required_percentage = Just value }
+
+        MaxTeamSize ->
+            let
+                maybe_value =
+                    String.toInt value
+            in
+            case maybe_value of
+                Just actual_value ->
+                    { model | max_team_size = actual_value }
+
+                Nothing ->
+                    { model | max_team_size = 1 }
 
         _ ->
             -- Only date fields left. They are set by the date picker
@@ -552,6 +595,7 @@ modelValidator sharedState =
             [ ifJustAndNotInt .required_percentage ( RequiredPercentage, "Die benötigten Prozent müssen eine Prozentzahl sein." )
             , ifIsNotPercentage .required_percentage ( RequiredPercentage, "Die benötigten Prozent müssen zwischen 0 und 100% liegen." )
             ]
+        , ifIsNotPositive .max_team_size ( MaxTeamSize, "Team size must be positive." )
         ]
 
 
@@ -648,3 +692,8 @@ isPercentageRequiredAndOk maybePercentage =
 
         Nothing ->
             True
+
+
+ifIsNotPositive : (subject -> Int) -> error -> Validator error subject
+ifIsNotPositive subjectToInt error =
+    Validate.ifFalse (\subject -> subjectToInt subject > 0) error

@@ -17,11 +17,11 @@ import Api.Data.TaskRatingResponse exposing (TaskRatingResponse)
 import Api.Request.Task as TaskRequests
 import Components.CommonElements
     exposing
-        ( dateElement
-        , datesDisplayContainer
-        , PbbButtonState(..)
+        ( PbbButtonState(..)
         , PbbResultState(..)
         , PbbState(..)
+        , dateElement
+        , datesDisplayContainer
         , fileUploader
         , inputLabel
         , r1Column
@@ -43,6 +43,7 @@ import File.Select as Select
 import Html exposing (..)
 import Html.Events exposing (onClick)
 import Http
+import I18n
 import Markdown as MD
 import RemoteData exposing (RemoteData(..), WebData)
 import SharedState exposing (SharedState, SharedStateUpdate(..))
@@ -308,11 +309,18 @@ update sharedState msg model =
 
 view : SharedState -> Model -> Bool -> Html Msg
 view sharedState model deadlineReached =
-    let upl = case model.gradeResponse of
+    let
+        upl =
+            case model.gradeResponse of
                 Success grade ->
-                        h2 [ classes [TC.tl, TC.bn, TC.f6, TC.dark_green ] ]
+                    h2 [ classes [ TC.tl, TC.bn, TC.f6, TC.dark_green ] ]
                         [ dd [ classes [ TC.ml0 ] ] [ text "Erfolgreich hochgeladen: ", DF.dateAndTimeFormatter sharedState grade.updated_at ] ]
-                _ -> h2 [ classes [TC.tl, TC.bn, TC.f6, TC.dark_red ] ] [ text "Noch nichts hochgeladen." ]
+
+                _ ->
+                    h2 [ classes [ TC.tl, TC.bn, TC.f6, TC.dark_red ] ] [ text "Noch nichts hochgeladen." ]
+
+        t =
+            I18n.get sharedState.translations
     in
     rContainer <|
         rCollapsablePlain
@@ -334,15 +342,7 @@ view sharedState model deadlineReached =
                             , TC.mb1
                             ]
                         ]
-                        [ text "For "
-                        , span [ classes [ TC.fw6 ] ] [ text "programming exercises:" ]
-                        , text " Upload a "
-                        , span [ classes [ TC.fw6 ] ] [ text "Zip-file" ]
-                        , text " that contains all "
-                        , span [ classes [ TC.fw6 ] ] [ text "package directories" ]
-                        , text " from the "
-                        , span [ classes [ TC.fw6 ] ] [ text "'src/'" ]
-                        , text " folder of your Eclipse project."
+                        [ text (t "upload-instructions-cpp")
                         ]
                     , h5
                         [ classes
@@ -352,13 +352,7 @@ view sharedState model deadlineReached =
                             , TC.mb1
                             ]
                         ]
-                        [ text "For "
-                        , span [ classes [ TC.fw6 ] ] [ text "text exercises:" ]
-                        , text " Upload a "
-                        , span [ classes [ TC.fw6 ] ] [ text "Zip-file" ]
-                        , text " that contains a plain "
-                        , span [ classes [ TC.fw6 ] ] [ text ".txt-file" ]
-                        , text " with your answers."
+                        [ text (t "upload-instructions-text")
                         ]
                     , fileUploader model.hover model.submission DragEnter DragLeave Pick GotFiles
                     ]
@@ -425,9 +419,11 @@ view sharedState model deadlineReached =
                     [ case model.gradeResponse of
                         Success grade ->
                             datesDisplayContainer <|
-                              dateElement "Die Abgabe wurde zuletzt erfolgreich hochgeladen am: " <|
-                                DF.dateAndTimeFormatter sharedState grade.updated_at
-                        _ -> text <| "Bisher wurde noch keine Datei hochgeladen."
+                                dateElement "Die Abgabe wurde zuletzt erfolgreich hochgeladen am: " <|
+                                    DF.dateAndTimeFormatter sharedState grade.updated_at
+
+                        _ ->
+                            text <| "Bisher wurde noch keine Datei hochgeladen."
                     ]
             ]
                 ++ (case model.gradeResponse of

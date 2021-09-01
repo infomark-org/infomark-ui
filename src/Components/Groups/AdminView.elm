@@ -18,7 +18,6 @@ import Api.Data.Group exposing (Group)
 import Api.Data.GroupEnrollmentChange exposing (GroupEnrollmentChange)
 import Api.Data.User exposing (User)
 import Api.Data.UserEnrollment exposing (UserEnrollment)
-import Api.Request.Courses as CourseRequests
 import Api.Request.Groups as GroupRequests
 import Browser.Navigation exposing (pushUrl)
 import Components.CommonElements

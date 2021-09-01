@@ -8,32 +8,49 @@
            (done)
    - Group information:
        - If you are a student and not distributed to a group:
-           - The exercise groups with dates and tutors
-           - Here you can set your preferences
+           - The exercise groups with dates and tutors [done]
+           - Here you can set your preferences [done]
        - If you are a student and distributed to a group:
-           - Your group
+           - Your group [done]
        - If you are a tutor/supertutor:
-           - Your group with date and times
-           - A link to send emails (inline?)
+           - Your group with date and times [done]
+           - A link to send emails (inline?) [done]
        - If you are a root:
-           - Options to create/edit/delete groups
-           - Options to view all users in a group and an option to change a user from one group to another
+           - Options to create/edit/delete groups [done]
+           - Options to view all users in a group and an option to change a user
+           from one group to another [done]
    - Exercise sheets (download and link to the sheet for uploading/grading)
        - If you are a root:
-           - Options to create/edit/delete sheets -> Extra view
+           - Options to create/edit/delete sheets -> Extra view [done]
    - Other course materials (Slides and Supplementary) (downloadable)
        - If you are a root:
-           - Options to create/edit/delete materials (Inline?)
-   - Statistics for Tutors and root
+           - Options to create/edit/delete materials (Inline?) [done]
+   - Statistics for Tutors and root [TODO]
+   - Team information
+      - If you are a student, in a group and not yet in a team and didn't
+      request to join a team yet:
+        - A list of all incomplete teams and students without a team in your
+        group are shown to you.
+        - You can request to join into one of those teams.
+      - If you requested to join a team:
+        - You can wait until all other members agreed.
+        - You can take back your join-request.
+      - If you are in a team already:
+        - You see your team members.
+        - You can leave the team.
+      - If you are a Admin:
+        - Show total number of teams in course
+      - If you are a Tutor:
+        - Show total number of teams in your course
 -}
 
 
 module Pages.CourseDetail exposing (Model, Msg(..), init, update, view)
 
 import Api.Data.AccountEnrollment as AccountEnrollment exposing (AccountEnrollment)
-import Api.Data.Exam exposing (Exam, ExamEnrollment, ExamEnrollments, Exams)
 import Api.Data.Course exposing (Course)
 import Api.Data.CourseRole as CourseRole exposing (CourseRole(..))
+import Api.Data.Exam exposing (Exam, ExamEnrollment, ExamEnrollments, Exams)
 import Api.Data.Group as Group exposing (Group)
 import Api.Data.GroupBid as GroupBid exposing (GroupBid)
 import Api.Data.GroupEnrollmentChange as GroupEnrollmentChange exposing (GroupEnrollmentChange)
@@ -41,6 +58,7 @@ import Api.Data.GroupSummary as GroupSummary exposing (GroupSummary)
 import Api.Data.Material as Material exposing (Material, MaterialType(..))
 import Api.Data.PointOverview as PointOverview exposing (PointOverview)
 import Api.Data.Sheet as Sheet exposing (Sheet)
+import Api.Data.Team exposing (Team, TeamMember)
 import Api.Data.User as User exposing (User)
 import Api.Data.UserEnrollment as UserEnrollment exposing (UserEnrollment)
 import Api.Endpoint exposing (sheetFile, unwrap)
@@ -54,11 +72,11 @@ import Components.CommonElements
     exposing
         ( checkBoxes
         , dateElement
-        , datesDisplayContainer
         , dateInputElement
+        , datesDisplayContainer
+        , iconButton
         , inputElement
         , multiButton
-        , iconButton
         , nButtonList
         , normalPage
         , pageContainer
@@ -115,6 +133,13 @@ type Msg
     | SearchUserForGroupResponse (WebData UserEnrollment) -- Search for a specific user to change the group (Only admins)
     | GroupChangedResponse (WebData GroupEnrollmentChange) -- Response for a group change initiated by an admin
     | PointOverviewResponse (WebData (List PointOverview))
+    | CourseTeamCountResponse (WebData Int)
+    | GroupTeamCountResponse (WebData Int)
+    | StudentTeamResponse (WebData Team)
+    | IsTeamConfirmedResponse (WebData Bool)
+    | IncompleteTeamsResponse (WebData (List Team))
+    | RequestToJoinTeam (WebData ())
+    | RequestToFormTeam (WebData ())
     | ToggleEnrollToExam Int
     | GroupMsg GroupMsgTypes
     | SheetRequestResponse (WebData (List Sheet))
@@ -155,6 +180,10 @@ type alias Model =
     , examEnrollments : Dict Int ExamEnrollment
     , courseRole : Maybe CourseRole
     , courseRequest : WebData Course
+    , teamRequest : WebData Team
+    , isTeamConfirmed : Bool
+    , teamCountRequest : WebData Int
+    , incompleteTeamsRequest : WebData (List Team)
     , sheetRequest : WebData (List Sheet)
     , materialRequest : WebData (List Material)
     , courseRoleRequest : WebData (List AccountEnrollment)
@@ -194,6 +223,10 @@ init id =
       , examTimePickers = Dict.empty
       , examEnrollments = Dict.empty
       , newExamVisible = False
+      , teamRequest = NotAsked
+      , isTeamConfirmed = False
+      , teamCountRequest = NotAsked
+      , incompleteTeamsRequest = NotAsked
       , newExam = initNewExam
       , courseRole = Nothing
       , courseRequest = Loading
@@ -236,7 +269,10 @@ determineInitialRoleRequests model role =
             ( { model
                 | groupsRequest = Loading
               }
-            , CoursesRequests.courseGroupsGet model.courseId GroupsDisplayResponse
+            , Cmd.batch
+                [ CoursesRequests.courseGroupsGet model.courseId GroupsDisplayResponse
+                , TeamRequests.courseTeamCountGet model.courseId CourseTeamCountResponse
+                ]
             )
 
         Tutor ->
@@ -248,6 +284,7 @@ determineInitialRoleRequests model role =
                 [ CoursesRequests.coursesEnrollmentGetTeam model.courseId EnrollmentsResponse
                 , CoursesRequests.courseOwnGroupGet model.courseId OwnGroupsResponse
                 , CoursesRequests.courseGroupsGet model.courseId GroupsDisplayResponse
+                , TeamRequests.groupTeamCountGet model.courseId GroupTeamCountResponse
                 ]
             )
 
@@ -259,6 +296,7 @@ determineInitialRoleRequests model role =
             , Cmd.batch
                 [ CoursesRequests.coursesEnrollmentGetTeam model.courseId EnrollmentsResponse
                 , CoursesRequests.courseOwnGroupGet model.courseId OwnGroupsResponse
+                , TeamRequests.studentTeamRequest model.courseId StudentTeamResponse
                 ]
             )
 
@@ -271,6 +309,51 @@ update sharedState msg model =
 
         CourseResponse response ->
             ( { model | courseRequest = response }, Cmd.none, NoUpdate )
+
+        CourseTeamCountResponse response ->
+            ( { model | teamCountRequest = response }, Cmd.none, NoUpdate )
+
+        GroupTeamCountResponse response ->
+            ( { model | teamCountRequest = response }, Cmd.none, NoUpdate )
+
+        StudentTeamResponse response ->
+            case response of
+                Success team ->
+                    case team.id of
+                        Nothing ->
+                            ( { model | teamRequest = response, incompleteTeamsRequest = Loading }
+                            , TeamRequests.incompleteTeamsRequest model.courseId IncompleteTeamsResponse
+                            , NoUpdate
+                            )
+
+                        Just id ->
+                            ( { model | teamRequest = response }
+                            , TeamRequests.isTeamConfirmedGet id IsTeamConfirmedResponse
+                            , NoUpdate
+                            )
+
+                _ ->
+                    ( { model | teamRequest = response }, Cmd.none, NoUpdate )
+
+        IncompleteTeamsResponse response ->
+            ( { model | incompleteTeamsRequest = response }, Cmd.none, NoUpdate )
+
+        IsTeamConfirmedResponse response ->
+            case response of
+                Success is_confirmed ->
+                    ( { model | isTeamConfirmed = is_confirmed }
+                    , Cmd.none
+                    , NoUpdate
+                    )
+
+                _ ->
+                    ( model, Cmd.none, NoUpdate )
+
+        RequestToJoinTeam (Success response) ->
+            ( model, TeamRequests.studentTeamRequest model.courseId, NoUpdate )
+
+        RequestToFormTeam (Success response) ->
+            ( model, TeamRequests.studentTeamRequest model.courseId, NoUpdate )
 
         CourseRoleResponse (Success roles) ->
             case determineRole model.courseId roles of
@@ -982,7 +1065,6 @@ update sharedState msg model =
             , NoUpdate
             )
 
-
         _ ->
             ( model, Cmd.none, NoUpdate )
 
@@ -1115,7 +1197,8 @@ view sharedState model =
                 [ widePage_mw8 <| [ viewCourseInfo sharedState model ]
                 , viewExams sharedState model
                 , normalPage <|
-                    [ viewSheets sharedState model
+                    [ viewExerciseTeam sharedState model
+                    , viewSheets sharedState model
                     , viewMaterials sharedState model Slide
                     , viewMaterials sharedState model Supplementary
                     , viewDetermineGroupDisplay role sharedState model
@@ -1125,6 +1208,7 @@ view sharedState model =
 
         ( _, _ ) ->
             div [] []
+
 
 viewExams : SharedState -> Model -> Html Msg
 viewExams sharedState model =
@@ -1241,6 +1325,7 @@ viewExamEditor sharedState model exam =
 
         ( ( _, _ ), ( _, _ ) ) ->
             text "ERROR on date/time pickers"
+
 
 datePickerSettings : SharedState -> DatePicker.Settings
 datePickerSettings sharedState =
@@ -1477,6 +1562,7 @@ filterExam exams enrollments =
     List.map (\( use, id, exam ) -> ( id, exam ))
         (List.filter (\( use, id, exam ) -> use) examSuccess)
 
+
 viewCourseInfo : SharedState -> Model -> Html Msg
 viewCourseInfo sharedState model =
     let
@@ -1491,27 +1577,28 @@ viewCourseInfo sharedState model =
                         , List.sum <| List.map (\p -> p.max_points) points
                         , List.sum <| List.map (\p -> p.achievable_points) points
                         )
-                            |> (\ (fst, snd, thrd) ->
+                            |> (\( fst, snd, thrd ) ->
                                     { acquired_points = fst
                                     , max_points = snd
                                     , achievable_points = thrd
-                                    , color = let
-                                                acquiredPerc =
-                                                    round <|
-                                                        (toFloat <| fst)
-                                                            / (toFloat <| snd)
-                                                            * 100
-                                              in
-                                              if acquiredPerc < course.required_percentage then
-                                                TC.red
+                                    , color =
+                                        let
+                                            acquiredPerc =
+                                                round <|
+                                                    (toFloat <| fst)
+                                                        / (toFloat <| snd)
+                                                        * 100
+                                        in
+                                        if acquiredPerc < course.required_percentage then
+                                            TC.red
 
-                                              else if acquiredPerc < (course.required_percentage + 5) then
-                                                TC.gold
+                                        else if acquiredPerc < (course.required_percentage + 5) then
+                                            TC.gold
 
-                                              else
-                                                TC.dark_green
+                                        else
+                                            TC.dark_green
                                     }
-                                )
+                               )
                             |> Just
 
                 ( _, _ ) ->
@@ -1695,6 +1782,149 @@ viewDetermineGroupDisplay courseRole sharedState model =
             text ""
 
 
+viewExerciseTeam : sharedState -> Model -> Html Msg
+viewExerciseTeam sharedState model =
+    if model.max_team_size > 1 then
+        case model.courseRole of
+            Just Admin ->
+                viewExerciseTeamsAdmin sharedState model
+
+            Just Tutor ->
+                viewExerciseTeamsTutor sharedState model
+
+            Just Student ->
+                viewExerciseTeamStudent sharedState model
+
+            Nothing ->
+                text ""
+
+    else
+        text ""
+
+
+viewExerciseTeamsAdmin : sharedState -> Model -> Html Msg
+viewExerciseTeamsAdmin sharedState model =
+    rContainer <|
+        [ rRowHeader "Exercise Teams"
+        , div [ classes [ TC.h3, TC.flex, TC.justify_between, TC.items_center ] ] <|
+            case model.teamCountRequest of
+                Success teamCount ->
+                    [ text "Number of teams in course"
+                    , text (String.fromInt teamCount)
+                    ]
+
+                _ ->
+                    [ text "Loading..." ]
+        ]
+
+
+viewExerciseTeamsTutor : sharedState -> Model -> Html Msg
+viewExerciseTeamsTutor sharedState model =
+    rContainer <|
+        [ rRowHeader "Exercise Teams in Group"
+        , div [ classes [ TC.h3, TC.flex, TC.justify_between, TC.items_center ] ] <|
+            case model.teamCountRequest of
+                Success teamCount ->
+                    [ text "Number of teams in group"
+                    , text (String.fromInt teamCount)
+                    ]
+
+                _ ->
+                    [ text "Loading..." ]
+        ]
+
+
+viewExerciseTeamStudent : sharedState -> Model -> Html Msg
+viewExerciseTeamStudent sharedState model =
+    case model.teamRequest of
+        Success team ->
+            if List.isEmpty team.members then
+                viewExerciseTeamRequestTable sharedState model
+
+            else if model.isTeamConfirmed then
+                viewTeamOfStudent team
+
+            else
+                viewConfirmView team
+
+
+viewTeamOfStudent : Team -> Html Msg
+viewTeamOfStudent team =
+    rContainer <|
+        [ rRowHeader "My Team"
+        , div [ TC.flex, TC.justify_between ]
+            List.map
+            (\name -> text name)
+            (namesFromTeam team)
+        ]
+        -- TODO: Leave team button
+
+viewConfirmView : Team -> Html Msg
+viewConfirmView team =
+    rContainer <|
+        [ rRowHeader "My Team"
+        , div [ TC.flex, TC.justify_between ]
+            List.map
+            (\name -> text name)
+            (namesFromTeam team)
+        ]
+        -- TODO: Confirm view
+
+
+viewExerciseTeamRequestTable : sharedState -> Model -> Html Msg
+viewExerciseTeamRequestTable sharedState model =
+    let
+        table_body =
+            case model.incompleteTeamsRequest of
+                Success incompleteTeams ->
+                    List.map
+                        (\team ->
+                            tr [ Styles.textStyle ]
+                                [ td []
+                                    [ text (String.join ", " namesFromTeam team)
+                                    , td []
+                                        button
+                                        [ Styles.buttonGreenStyle
+                                        , case team.id of
+                                            Just team_id ->
+                                                onClick RequestToJoinTeam team.id
+
+                                            Nothing ->
+                                                onClick RequestToFormTeam team.user_id
+                                        ]
+                                    ]
+                                ]
+                        )
+                        incompleteTeams
+
+                _ ->
+                    []
+    in
+    rContainer <|
+        [ rRowHeader "Exercise Team"
+        , table [ class "striped", class "overview-table" ]
+            [ thead []
+                [ tr [ Styles.textStyle ]
+                    [ th [ class "student-overview-head-horizontal" ]
+                        [ div [] [ span [] [ text "Incomplete Team" ] ] ]
+                    , th [ class "student-overview-head-horizontal" ]
+                        [ div [] [ span [] [ text "Request Join" ] ] ]
+                    ]
+                ]
+            ]
+        , tbody [] table_body
+        ]
+
+
+namesFromTeam : Team -> List String
+namesFromTeam team =
+    List.map
+        (\member ->
+            member.first_name ++ " " ++ member.last_name
+        )
+        team.members
+
+
 viewSheets : SharedState -> Model -> Html Msg
 viewSheets sharedState model =
     let
@@ -1718,15 +1948,16 @@ viewSheets sharedState model =
                                 , { acquired_points = p.acquired_points
                                   , max_points = p.max_points
                                   , achievable_points = p.achievable_points
-                                  , color = if acquiredPerc < course.required_percentage then
-                                                classes (TC.red :: baseStyle)
+                                  , color =
+                                        if acquiredPerc < course.required_percentage then
+                                            classes (TC.red :: baseStyle)
 
-                                            else if acquiredPerc < (course.required_percentage + 5) then
-                                                classes (TC.gold :: baseStyle)
+                                        else if acquiredPerc < (course.required_percentage + 5) then
+                                            classes (TC.gold :: baseStyle)
 
-                                            else
-                                                classes (TC.dark_green :: baseStyle)
-                                   }
+                                        else
+                                            classes (TC.dark_green :: baseStyle)
+                                  }
                                 )
                             )
                         |> Dict.fromList
@@ -1758,7 +1989,8 @@ viewSheets sharedState model =
                                                     ++ " (maximal erreichbar: "
                                                     ++ (String.fromInt <| mp.max_points)
                                                     ++ ")"
-                                                , mp.color --labelStyle
+                                                , mp.color
+                                                  --labelStyle
                                                 )
 
                                             Nothing ->
@@ -1957,6 +2189,7 @@ setField model field value =
 
         GroupSearchField ->
             { model | searchGroupInput = value }
+
         ExamName examId ->
             let
                 exams =

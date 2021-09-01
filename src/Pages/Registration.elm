@@ -146,7 +146,7 @@ updateHandleRegistrationResponse sharedState model response =
             ( { model | registrationProgress = response }
             , pushUrl sharedState.navKey (reverseRoute LoginRoute)
             , ShowToast <| Components.Toasty.Success "Success" "Confirmation email has been sent"
-             )
+            )
 
         Failure (Http.BadBody error) ->
             ( { model | registrationProgress = response }, pushUrl sharedState.navKey (reverseRoute LoginRoute), NoUpdate )
@@ -239,8 +239,8 @@ view sharedState model =
                               -- First element
                               <|
                                 inputElement
-                                    { label = (t "form-firstname")
-                                    , placeholder = (t "form-firstname")
+                                    { label = t "form-firstname"
+                                    , placeholder = t "form-firstname"
                                     , fieldType = "text"
                                     , value = model.firstName
                                     }
@@ -251,8 +251,8 @@ view sharedState model =
                               -- Second element
                               <|
                                 inputElement
-                                    { label = (t "form-lastname")
-                                    , placeholder = (t "form-lastname")
+                                    { label = t "form-lastname"
+                                    , placeholder = t "form-lastname"
                                     , fieldType = "text"
                                     , value = model.lastName
                                     }
@@ -266,7 +266,7 @@ view sharedState model =
                               -- First element
                               <|
                                 inputElement
-                                    { label = (t "form-course-of-studies")
+                                    { label = t "form-course-of-studies"
                                     , placeholder = "Informatik / Medieninformatik / Medizininformatik / ..."
                                     , fieldType = "text"
                                     , value = model.subject
@@ -278,7 +278,7 @@ view sharedState model =
                               -- Second element
                               <|
                                 inputElement
-                                    { label = (t "form-semester")
+                                    { label = t "form-semester"
                                     , placeholder = "1"
                                     , fieldType = "number"
                                     , value = model.semester
@@ -291,7 +291,7 @@ view sharedState model =
                             -- Thrid Row (Student Number)
                             [ div [ classes [ TC.fl, TC.w_100 ] ] <|
                                 inputElement
-                                    { label = (t "form-matriculation-number")
+                                    { label = t "form-matriculation-number"
                                     , placeholder = "000000 (Uni Tübingen)"
                                     , fieldType = "number"
                                     , value = model.studentNumber
@@ -304,7 +304,7 @@ view sharedState model =
                             -- Fourth Row (Email)
                             [ div [ classes [ TC.fl, TC.w_100 ] ] <|
                                 inputElement
-                                    { label = (t "mail-address")
+                                    { label = t "mail-address"
                                     , placeholder = "Email"
                                     , fieldType = "email"
                                     , value = model.email
@@ -319,8 +319,8 @@ view sharedState model =
                               -- First element
                               <|
                                 inputElement
-                                    { label = (t "password")
-                                    , placeholder = (t "password")
+                                    { label = t "password"
+                                    , placeholder = t "password"
                                     , fieldType = "password"
                                     , value = model.password
                                     }
@@ -331,7 +331,7 @@ view sharedState model =
                               -- Second element
                               <|
                                 inputElement
-                                    { label = (t "form-repeat-password")
+                                    { label = t "form-repeat-password"
                                     , placeholder = "Password"
                                     , fieldType = "password"
                                     , value = model.passwordRepeat
@@ -372,16 +372,14 @@ noUniEmailDialog sharedState model =
                 [ classes [ TC.w_100, TC.mt4 ] ]
                 [ p [ Styles.textStyle ] [ text "The provided E-Mail is no university E-Mail address." ]
                 , div [ classes [ TC.fr, TC.mt3 ] ]
-                    [
-                    button
+                    [ button
                         [ classes
                             []
                         , Styles.buttonRedStyle
                         , onClick <| Register True
                         ]
                         [ text "Register anyway" ]
-                    ,
-                      button
+                    , button
                         [ classes
                             [ TC.ml3 ]
                         , Styles.buttonGreenStyle

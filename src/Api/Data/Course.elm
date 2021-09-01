@@ -14,6 +14,7 @@ type alias Course =
     , begins_at : Posix
     , ends_at : Posix
     , required_percentage : Int
+    , max_team_size : Int
     }
 
 
@@ -26,6 +27,7 @@ decoder =
         |> required "begins_at" Iso8601.decoder
         |> required "ends_at" Iso8601.decoder
         |> required "required_percentage" Decode.int
+        |> required "max_team_size" Decode.int
 
 
 encoder : Course -> Encode.Value
@@ -37,4 +39,5 @@ encoder model =
         , ( "begins_at", Iso8601.encode model.begins_at )
         , ( "ends_at", Iso8601.encode model.ends_at )
         , ( "required_percentage", Encode.int model.required_percentage )
+        , ( "max_team_size", Encode.int model.max_team_size )
         ]

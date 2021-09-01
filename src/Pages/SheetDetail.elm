@@ -430,6 +430,8 @@ viewSheetDetail sharedState model =
 
                 _ ->
                     Nothing
+        t =
+            I18n.get sharedState.translations
     in
     case model.sheetDetailResponse of
         Success detail ->
@@ -446,10 +448,10 @@ viewSheetDetail sharedState model =
                            )
                     )
                 , if checkIfSheetStillActive sharedState detail.due_at then
-                    rRowWarning "Submission closed" <|
-                        "The sheet was due "
+                    rRowWarning (t "submission-closed") <|
+                        t "submission-was-due"
                             ++ DF.shortDateFormatter sharedState detail.due_at
-                            ++ " at "
+                            ++ t "submission-due-time"
                             ++ DF.timeFormatter sharedState detail.due_at
 
                   else
@@ -457,20 +459,21 @@ viewSheetDetail sharedState model =
                 , rRow <|
                     r2Column
                         [ datesDisplayContainer <|
-                            (dateElement "Abgabezeit" <| DF.dateAndTimeFormatter sharedState detail.due_at)
-                                ++ (dateElement "Maximale Punkte" <| text <| String.fromInt <| sumTasksPoints model)
+                            (dateElement (t "submission-time") <| DF.dateAndTimeFormatter sharedState detail.due_at)
+                                ++ (dateElement (t "max-points") <| text <| String.fromInt <| sumTasksPoints model)
                         ]
                         [ case maybePoints of
                             Just mp ->
                                 div []
                                     [ h4 [ classes [ TC.black, TC.fw6, TC.f5, TC.ttu, TC.lh_copy, TC.tracked, TC.mt3, TC.mb1 ] ]
-                                        [ text "Erreichte Punkte" ]
+                                        [ text (t "reached-points") ]
                                     , h1 [ classes [ mp.color, TC.mt0, TC.f3 ], Styles.headerStyle ]
                                         [ text <|
                                             (String.fromInt <| mp.acquired_points)
                                                 ++ "/"
                                                 ++ (String.fromInt <| mp.achievable_points)
-                                                ++ " (maximal erreichbar: "
+                                                ++ " (" ++ t "maximum-reachable"
+
                                                 ++ (String.fromInt <| mp.max_points)
                                                 ++ ")"
                                         ]
