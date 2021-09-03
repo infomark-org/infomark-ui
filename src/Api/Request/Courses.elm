@@ -1,5 +1,6 @@
 module Api.Request.Courses exposing
     ( courseDelete
+    , courseExerciseTeamCountGet
     , courseGet
     , courseGradeGet
     , courseGradeMissing
@@ -32,7 +33,7 @@ module Api.Request.Courses exposing
     , coursesPost
     )
 
-import Api.Data.Course as Course exposing (Course)
+import Api.Data.Course as Course exposing (Course, TeamCount, teamCountDecoder)
 import Api.Data.CourseRole as CourseRole exposing (CourseRole(..))
 import Api.Data.Grade as Grade exposing (Grade)
 import Api.Data.Group as Group exposing (Group)
@@ -59,10 +60,12 @@ import Api.Endpoint
         , courseMaterials
         , courseMissingGrades
         , courseMissingTasks
+        , courseExerciseTeamCount
         , coursePoints
         , courseSheets
         , courses
         , groupSummary
+        , courseMaxTeamSize
         , submissions
         , unwrap
         )
@@ -374,3 +377,11 @@ courseTaskMissing courseId msg =
         msg
     <|
         Decode.list MissingTask.decoder
+
+
+courseExerciseTeamCountGet : Int -> (WebData TeamCount -> msg) -> Cmd msg
+courseExerciseTeamCountGet courseId msg =
+    get (unwrap <| courseExerciseTeamCount courseId)
+        msg
+    <|
+        teamCountDecoder

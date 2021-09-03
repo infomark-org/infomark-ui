@@ -48,7 +48,7 @@
 module Pages.CourseDetail exposing (Model, Msg(..), init, update, view)
 
 import Api.Data.AccountEnrollment as AccountEnrollment exposing (AccountEnrollment)
-import Api.Data.Course exposing (Course)
+import Api.Data.Course exposing (Course, TeamCount)
 import Api.Data.CourseRole as CourseRole exposing (CourseRole(..))
 import Api.Data.Exam exposing (Exam, ExamEnrollment, ExamEnrollments, Exams)
 import Api.Data.Group as Group exposing (Group)
@@ -58,7 +58,7 @@ import Api.Data.GroupSummary as GroupSummary exposing (GroupSummary)
 import Api.Data.Material as Material exposing (Material, MaterialType(..))
 import Api.Data.PointOverview as PointOverview exposing (PointOverview)
 import Api.Data.Sheet as Sheet exposing (Sheet)
-import Api.Data.Team exposing (Team, TeamMember)
+import Api.Data.Team exposing (Team)
 import Api.Data.User as User exposing (User)
 import Api.Data.UserEnrollment as UserEnrollment exposing (UserEnrollment)
 import Api.Endpoint exposing (sheetFile, unwrap)
@@ -67,6 +67,7 @@ import Api.Request.Courses as CoursesRequests
 import Api.Request.Exam as ExamRequests
 import Api.Request.Groups as GroupsRequests
 import Api.Request.Material as MaterialRequests
+import Api.Request.Team as TeamRequests
 import Browser.Navigation exposing (pushUrl)
 import Components.CommonElements
     exposing
@@ -133,13 +134,11 @@ type Msg
     | SearchUserForGroupResponse (WebData UserEnrollment) -- Search for a specific user to change the group (Only admins)
     | GroupChangedResponse (WebData GroupEnrollmentChange) -- Response for a group change initiated by an admin
     | PointOverviewResponse (WebData (List PointOverview))
-    | CourseTeamCountResponse (WebData Int)
-    | GroupTeamCountResponse (WebData Int)
+    | CourseTeamCountResponse (WebData TeamCount)
+    | GroupTeamCountResponse (WebData TeamCount)
     | StudentTeamResponse (WebData Team)
     | IsTeamConfirmedResponse (WebData Bool)
     | IncompleteTeamsResponse (WebData (List Team))
-    | RequestToJoinTeam (WebData ())
-    | RequestToFormTeam (WebData ())
     | ToggleEnrollToExam Int
     | GroupMsg GroupMsgTypes
     | SheetRequestResponse (WebData (List Sheet))
@@ -166,11 +165,21 @@ type Msg
     | ExamDeleteResponse Int (WebData ())
     | ExamResponse
     | CreateExam
+    | RequestToJoinTeam Int
+    | ResponseToJoinTeam (WebData Team)
+    | RequestToFormTeam Int
+      --    | ResponseToFormTeam (WebData Team)
+    | LeaveTeamClicked
+    | ResponseLeaveTeam (WebData Team)
+    | ConfirmTeamClicked
+    | ResponseGetTeamConfirmState (WebData Bool)
+    | GetCourseResponse (WebData Course)
 
 
 type alias Model =
     { courseId : Int
     , exams : Dict Int Exam
+    , maxTeamSize : Int
     , newExam : Exam
     , newExamVisible : Bool
     , examDates : Dict Int (Maybe Date.Date)
@@ -182,7 +191,8 @@ type alias Model =
     , courseRequest : WebData Course
     , teamRequest : WebData Team
     , isTeamConfirmed : Bool
-    , teamCountRequest : WebData Int
+    , iConfirmedTeam : Bool
+    , teamCountRequest : WebData TeamCount
     , incompleteTeamsRequest : WebData (List Team)
     , sheetRequest : WebData (List Sheet)
     , materialRequest : WebData (List Material)
@@ -217,6 +227,7 @@ init : Int -> ( Model, Cmd Msg )
 init id =
     ( { courseId = id
       , exams = Dict.empty
+      , maxTeamSize = 1
       , examDates = Dict.empty
       , examTimes = Dict.empty
       , examDatePickers = Dict.empty
@@ -226,6 +237,7 @@ init id =
       , teamRequest = NotAsked
       , isTeamConfirmed = False
       , teamCountRequest = NotAsked
+      , iConfirmedTeam = False
       , incompleteTeamsRequest = NotAsked
       , newExam = initNewExam
       , courseRole = Nothing
@@ -251,6 +263,7 @@ init id =
         , CoursesRequests.courseSheetsGet id SheetRequestResponse
         , CoursesRequests.courseMaterialsGet id MaterialRequestResponse
         , CoursesRequests.coursePointsGet id PointOverviewResponse
+        , CoursesRequests.courseGet id GetCourseResponse
         , ExamRequests.examsGet id ExamsResponse
         , ExamRequests.examEnrollmentsStudentGet ExamEnrollmentResponse
         ]
@@ -271,7 +284,7 @@ determineInitialRoleRequests model role =
               }
             , Cmd.batch
                 [ CoursesRequests.courseGroupsGet model.courseId GroupsDisplayResponse
-                , TeamRequests.courseTeamCountGet model.courseId CourseTeamCountResponse
+                , CoursesRequests.courseExerciseTeamCountGet model.courseId CourseTeamCountResponse
                 ]
             )
 
@@ -284,7 +297,7 @@ determineInitialRoleRequests model role =
                 [ CoursesRequests.coursesEnrollmentGetTeam model.courseId EnrollmentsResponse
                 , CoursesRequests.courseOwnGroupGet model.courseId OwnGroupsResponse
                 , CoursesRequests.courseGroupsGet model.courseId GroupsDisplayResponse
-                , TeamRequests.groupTeamCountGet model.courseId GroupTeamCountResponse
+                , CoursesRequests.courseExerciseTeamCountGet model.courseId CourseTeamCountResponse
                 ]
             )
 
@@ -296,7 +309,7 @@ determineInitialRoleRequests model role =
             , Cmd.batch
                 [ CoursesRequests.coursesEnrollmentGetTeam model.courseId EnrollmentsResponse
                 , CoursesRequests.courseOwnGroupGet model.courseId OwnGroupsResponse
-                , TeamRequests.studentTeamRequest model.courseId StudentTeamResponse
+                , TeamRequests.teamGet model.courseId StudentTeamResponse
                 ]
             )
 
@@ -316,19 +329,22 @@ update sharedState msg model =
         GroupTeamCountResponse response ->
             ( { model | teamCountRequest = response }, Cmd.none, NoUpdate )
 
+        GetCourseResponse (Success course) ->
+            ( {model | maxTeamSize = course.max_team_size}, Cmd.none, NoUpdate)
+
         StudentTeamResponse response ->
             case response of
                 Success team ->
                     case team.id of
                         Nothing ->
                             ( { model | teamRequest = response, incompleteTeamsRequest = Loading }
-                            , TeamRequests.incompleteTeamsRequest model.courseId IncompleteTeamsResponse
+                            , TeamRequests.teamIncompleteGet model.courseId IncompleteTeamsResponse
                             , NoUpdate
                             )
 
                         Just id ->
                             ( { model | teamRequest = response }
-                            , TeamRequests.isTeamConfirmedGet id IsTeamConfirmedResponse
+                            , TeamRequests.teamConfirmedGet id IsTeamConfirmedResponse
                             , NoUpdate
                             )
 
@@ -349,11 +365,45 @@ update sharedState msg model =
                 _ ->
                     ( model, Cmd.none, NoUpdate )
 
-        RequestToJoinTeam (Success response) ->
-            ( model, TeamRequests.studentTeamRequest model.courseId, NoUpdate )
+        RequestToJoinTeam team_id ->
+            ( model, TeamRequests.teamJoinPut model.courseId team_id ResponseToJoinTeam, NoUpdate )
 
-        RequestToFormTeam (Success response) ->
-            ( model, TeamRequests.studentTeamRequest model.courseId, NoUpdate )
+        RequestToFormTeam user_id ->
+            ( model
+            , TeamRequests.teamFormPost model.courseId
+                user_id
+                ResponseToJoinTeam
+            , NoUpdate
+            )
+
+        LeaveTeamClicked ->
+            ( model, TeamRequests.teamLeavePut model.courseId ResponseLeaveTeam, NoUpdate )
+
+        ConfirmTeamClicked ->
+            ( model, TeamRequests.teamUserConfirmedPut model.courseId ResponseGetTeamConfirmState, NoUpdate )
+
+        ResponseToJoinTeam response ->
+            ( { model | teamRequest = response }
+            , TeamRequests.teamUserConfirmedGet model.courseId ResponseGetTeamConfirmState
+            , NoUpdate
+            )
+
+        ResponseLeaveTeam response ->
+            ( { model | teamRequest = response }
+            , case response of
+                Success _ ->
+                    TeamRequests.teamUserConfirmedGet model.courseId ResponseGetTeamConfirmState
+
+                _ ->
+                    Cmd.none
+            , NoUpdate
+            )
+
+        ResponseGetTeamConfirmState (Success iConfirmed) ->
+            ( { model | iConfirmedTeam = iConfirmed }, Cmd.none, NoUpdate )
+
+        ResponseGetTeamConfirmState _ ->
+            ( model, Cmd.none, NoUpdate )
 
         CourseRoleResponse (Success roles) ->
             case determineRole model.courseId roles of
@@ -1784,7 +1834,7 @@ viewDetermineGroupDisplay courseRole sharedState model =
 
 viewExerciseTeam : sharedState -> Model -> Html Msg
 viewExerciseTeam sharedState model =
-    if model.max_team_size > 1 then
+    if model.maxTeamSize > 1 then
         case model.courseRole of
             Just Admin ->
                 viewExerciseTeamsAdmin sharedState model
@@ -1810,7 +1860,7 @@ viewExerciseTeamsAdmin sharedState model =
             case model.teamCountRequest of
                 Success teamCount ->
                     [ text "Number of teams in course"
-                    , text (String.fromInt teamCount)
+                    , text (String.fromInt teamCount.team_count)
                     ]
 
                 _ ->
@@ -1826,7 +1876,7 @@ viewExerciseTeamsTutor sharedState model =
             case model.teamCountRequest of
                 Success teamCount ->
                     [ text "Number of teams in group"
-                    , text (String.fromInt teamCount)
+                    , text (String.fromInt teamCount.team_count)
                     ]
 
                 _ ->
@@ -1838,37 +1888,79 @@ viewExerciseTeamStudent : sharedState -> Model -> Html Msg
 viewExerciseTeamStudent sharedState model =
     case model.teamRequest of
         Success team ->
-            if List.isEmpty team.members then
-                viewExerciseTeamRequestTable sharedState model
-
-            else if model.isTeamConfirmed then
-                viewTeamOfStudent team
-
-            else
-                viewConfirmView team
+            case team.id of
+                Nothing ->
+                    viewExerciseTeamRequestTable sharedState model
+                Just team_id ->
+                    if model.isTeamConfirmed then
+                        viewTeamOfStudent team
+                    else
+                        viewConfirmView team model.iConfirmedTeam
+        _ ->
+            text "Team not loaded"
 
 
 viewTeamOfStudent : Team -> Html Msg
 viewTeamOfStudent team =
     rContainer <|
         [ rRowHeader "My Team"
-        , div [ TC.flex, TC.justify_between ]
-            List.map
-            (\name -> text name)
-            (namesFromTeam team)
+        , div [ classes [ TC.flex, TC.justify_between ] ]
+            (List.map
+                (\name -> text name)
+                (namesFromTeam team)
+                ++ [ button
+                        [ Styles.buttonRedStyle
+                        , classes [ TC.ph2, TC.pv2 ]
+                        , onClick LeaveTeamClicked
+                        ]
+                        [ text "Leave" ]
+                   ]
+            )
         ]
-        -- TODO: Leave team button
 
-viewConfirmView : Team -> Html Msg
-viewConfirmView team =
+
+viewConfirmView : Team -> Bool -> Html Msg
+viewConfirmView team confirmed_team =
     rContainer <|
         [ rRowHeader "My Team"
-        , div [ TC.flex, TC.justify_between ]
-            List.map
-            (\name -> text name)
-            (namesFromTeam team)
+        , div [ classes [ TC.flex, TC.justify_between ] ]
+            (List.map
+                (\name -> text name)
+                (namesFromTeam team)
+                ++ (if confirmed_team then
+                        [ span [ classes [ TC.dark_green ] ] [ text "Waiting for members to agree" ]
+                        , button
+                            [ Styles.buttonRedStyle
+                            , classes [ TC.ph2, TC.pv2 ]
+                            , onClick LeaveTeamClicked
+                            ]
+                            [ text "Leave" ]
+                        ]
+
+                    else
+                        [ span [ classes [ TC.dark_red ] ] [ text "Confirm or leave" ]
+                        , div []
+                            [ button
+                                [ Styles.buttonGreenStyle
+                                , classes [ TC.ph2, TC.pv2 ]
+                                , onClick ConfirmTeamClicked
+                                ]
+                                [ text "Confirm" ]
+                            , button
+                                [ Styles.buttonRedStyle
+                                , classes [ TC.ph2, TC.pv2 ]
+                                , onClick LeaveTeamClicked
+                                ]
+                                [ text "Leave" ]
+                            ]
+                        ]
+                   )
+            )
         ]
-        -- TODO: Confirm view
+
+
+
+-- TODO: Confirm view
 
 
 viewExerciseTeamRequestTable : sharedState -> Model -> Html Msg
@@ -1881,16 +1973,25 @@ viewExerciseTeamRequestTable sharedState model =
                         (\team ->
                             tr [ Styles.textStyle ]
                                 [ td []
-                                    [ text (String.join ", " namesFromTeam team)
+                                    [ text
+                                        (String.join ", " (namesFromTeam team))
                                     , td []
-                                        button
-                                        [ Styles.buttonGreenStyle
-                                        , case team.id of
-                                            Just team_id ->
-                                                onClick RequestToJoinTeam team.id
+                                        [ button
+                                            [ Styles.buttonGreenStyle
+                                            , case team.id of
+                                                Just team_id ->
+                                                    onClick
+                                                        (RequestToJoinTeam
+                                                            team_id
+                                                        )
 
-                                            Nothing ->
-                                                onClick RequestToFormTeam team.user_id
+                                                Nothing ->
+                                                    onClick
+                                                        (RequestToFormTeam
+                                                            team.user_id
+                                                        )
+                                            ]
+                                            [ text "Join" ]
                                         ]
                                     ]
                                 ]

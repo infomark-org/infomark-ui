@@ -1,4 +1,4 @@
-module Api.Data.Course exposing (Course, decoder, encoder)
+module Api.Data.Course exposing (Course, TeamCount, decoder, encoder, teamCountDecoder)
 
 import Iso8601
 import Json.Decode as Decode exposing (Decoder)
@@ -16,6 +16,9 @@ type alias Course =
     , required_percentage : Int
     , max_team_size : Int
     }
+
+type alias TeamCount =
+    { team_count : Int }
 
 
 decoder : Decoder Course
@@ -41,3 +44,8 @@ encoder model =
         , ( "required_percentage", Encode.int model.required_percentage )
         , ( "max_team_size", Encode.int model.max_team_size )
         ]
+
+teamCountDecoder : Decoder TeamCount
+teamCountDecoder =
+    Decode.succeed TeamCount
+    |> required "team_count" Decode.int
