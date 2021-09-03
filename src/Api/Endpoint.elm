@@ -385,36 +385,36 @@ teamConfirmed teamId =
 
 teamJoin : Int -> Endpoint
 teamJoin courseId =
-    url [ "course", String.fromInt courseId, "team", "join" ]
+    url [ "courses", String.fromInt courseId, "team", "join" ]
         []
 
 
 teamForm : Int -> Endpoint
 teamForm courseId =
-    url [ "course", String.fromInt courseId, "team", "form" ]
+    url [ "courses", String.fromInt courseId, "team", "form" ]
         []
 
 
 teamLeave : Int -> Endpoint
 teamLeave courseId =
-    url [ "course", String.fromInt courseId, "team", "leave" ] []
+    url [ "courses", String.fromInt courseId, "team", "leave" ] []
 
 
 teamUserConfirmed : Int -> Endpoint
 teamUserConfirmed courseId =
-    url [ "course", String.fromInt courseId, "team", "userconfirmed" ] []
+    url [ "courses", String.fromInt courseId, "team", "userconfirmed" ] []
 
 
 team : Int -> Endpoint
 team courseId =
-    url [ "course", String.fromInt courseId, "team" ] []
+    url [ "courses", String.fromInt courseId, "team" ] []
 
 
 courseExerciseTeamCount : Int -> Endpoint
 courseExerciseTeamCount courseId =
-    url [ "course", String.fromInt courseId, "teamcount" ] []
+    url [ "courses", String.fromInt courseId, "teamcount" ] []
 
 
 courseMaxTeamSize : Int -> Endpoint
 courseMaxTeamSize courseId =
-    url [ "course", String.fromInt courseId, "maxteamsize" ] []
+    url [ "courses", String.fromInt courseId, "maxteamsize" ] []
