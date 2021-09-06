@@ -1907,7 +1907,7 @@ viewTeamOfStudent team =
         , div [ classes [ TC.flex, TC.justify_between ] ]
             (List.map
                 (\name -> text name)
-                (namesFromTeam team)
+                team.members
                 ++ [ button
                         [ Styles.buttonRedStyle
                         , classes [ TC.ph2, TC.pv2 ]
@@ -1926,7 +1926,7 @@ viewConfirmView team confirmed_team =
         , div [ classes [ TC.flex, TC.justify_between ] ]
             (List.map
                 (\name -> text name)
-                (namesFromTeam team)
+                team.members
                 ++ (if confirmed_team then
                         [ span [ classes [ TC.dark_green ] ] [ text "Waiting for members to agree" ]
                         , button
@@ -1974,7 +1974,7 @@ viewExerciseTeamRequestTable sharedState model =
                             tr [ Styles.textStyle ]
                                 [ td []
                                     [ text
-                                        (String.join ", " (namesFromTeam team))
+                                        (String.join ", " team.members)
                                     , td []
                                         [ button
                                             [ Styles.buttonGreenStyle
@@ -2015,15 +2015,6 @@ viewExerciseTeamRequestTable sharedState model =
             ]
         , tbody [] table_body
         ]
-
-
-namesFromTeam : Team -> List String
-namesFromTeam team =
-    List.map
-        (\member ->
-            member.first_name ++ " " ++ member.last_name
-        )
-        team.members
 
 
 viewSheets : SharedState -> Model -> Html Msg
