@@ -330,7 +330,7 @@ update sharedState msg model =
             ( { model | teamCountRequest = response }, Cmd.none, NoUpdate )
 
         GetCourseResponse (Success course) ->
-            ( {model | maxTeamSize = course.max_team_size}, Cmd.none, NoUpdate)
+            ( { model | maxTeamSize = course.max_team_size }, Cmd.none, NoUpdate )
 
         StudentTeamResponse response ->
             case response of
@@ -1856,11 +1856,21 @@ viewExerciseTeamsAdmin : sharedState -> Model -> Html Msg
 viewExerciseTeamsAdmin sharedState model =
     rContainer <|
         [ rRowHeader "Exercise Teams"
-        , div [ classes [ TC.h3, TC.flex, TC.justify_between, TC.items_center ] ] <|
+        , div
+            [ classes
+                [ TC.h3
+                , TC.ph2
+                , TC.flex
+                , TC.justify_between
+                , TC.items_center
+                , TC.hover_bg_near_white
+                ]
+            ]
+          <|
             case model.teamCountRequest of
                 Success teamCount ->
-                    [ text "Number of teams in course"
-                    , text (String.fromInt teamCount.team_count)
+                    [ span [] [ text "Number of teams in course:" ]
+                    , span [ classes [ TC.b ] ] [ text (String.fromInt teamCount.team_count) ]
                     ]
 
                 _ ->
@@ -1872,11 +1882,26 @@ viewExerciseTeamsTutor : sharedState -> Model -> Html Msg
 viewExerciseTeamsTutor sharedState model =
     rContainer <|
         [ rRowHeader "Exercise Teams in Group"
-        , div [ classes [ TC.h3, TC.flex, TC.justify_between, TC.items_center ] ] <|
+        , div
+            [ classes
+                [ TC.h3
+                , TC.ph2
+                , TC.flex
+                , TC.justify_between
+                , TC.items_center
+                , TC.hover_bg_near_white
+                ]
+            ]
+          <|
             case model.teamCountRequest of
                 Success teamCount ->
-                    [ text "Number of teams in group"
-                    , text (String.fromInt teamCount.team_count)
+                    [ span [] [ text "Number of teams in group" ]
+                    , span [ classes [ TC.b ] ]
+                        [ text
+                            (String.fromInt
+                                teamCount.team_count
+                            )
+                        ]
                     ]
 
                 _ ->
@@ -1891,11 +1916,14 @@ viewExerciseTeamStudent sharedState model =
             case team.id of
                 Nothing ->
                     viewExerciseTeamRequestTable sharedState model
+
                 Just team_id ->
                     if model.isTeamConfirmed then
                         viewTeamOfStudent team
+
                     else
                         viewConfirmView team model.iConfirmedTeam
+
         _ ->
             text "Team not loaded"
 
