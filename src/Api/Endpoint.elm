@@ -378,9 +378,9 @@ teamIncomplete courseId =
     url [ "courses", String.fromInt courseId, "teams" ] []
 
 
-teamConfirmed : Int -> Endpoint
-teamConfirmed teamId =
-    url [ "courses", String.fromInt teamId, "team", "confirmed" ] []
+teamConfirmed : Int -> Int -> Endpoint
+teamConfirmed courseId teamId =
+    url [ "courses", String.fromInt courseId, "team", String.fromInt teamId, "confirmed" ] []
 
 
 teamJoin : Int -> Endpoint

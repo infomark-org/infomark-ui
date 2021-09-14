@@ -1,5 +1,7 @@
 module Api.Data.Team exposing
     ( Team
+    , TeamBool
+    , teamBoolDecoder
     , teamDecoder
     , teamEncoder
     )
@@ -16,6 +18,9 @@ type alias Team =
     , members : List String
     }
 
+
+type alias TeamBool =
+    { bool : Bool }
 
 
 teamDecoder : Decoder Team
@@ -34,3 +39,8 @@ teamEncoder model =
         , ( "members", Encode.list Encode.string model.members )
         ]
 
+
+teamBoolDecoder : Decoder TeamBool
+teamBoolDecoder =
+    Decode.succeed TeamBool
+        |> required "bool" Decode.bool

@@ -58,7 +58,7 @@ import Api.Data.GroupSummary as GroupSummary exposing (GroupSummary)
 import Api.Data.Material as Material exposing (Material, MaterialType(..))
 import Api.Data.PointOverview as PointOverview exposing (PointOverview)
 import Api.Data.Sheet as Sheet exposing (Sheet)
-import Api.Data.Team exposing (Team)
+import Api.Data.Team exposing (Team, TeamBool)
 import Api.Data.User as User exposing (User)
 import Api.Data.UserEnrollment as UserEnrollment exposing (UserEnrollment)
 import Api.Endpoint exposing (sheetFile, unwrap)
@@ -137,7 +137,7 @@ type Msg
     | CourseTeamCountResponse (WebData TeamCount)
     | GroupTeamCountResponse (WebData TeamCount)
     | StudentTeamResponse (WebData Team)
-    | IsTeamConfirmedResponse (WebData Bool)
+    | IsTeamConfirmedResponse (WebData TeamBool)
     | IncompleteTeamsResponse (WebData (List Team))
     | ToggleEnrollToExam Int
     | GroupMsg GroupMsgTypes
@@ -166,13 +166,11 @@ type Msg
     | ExamResponse
     | CreateExam
     | RequestToJoinTeam Int
-    | ResponseToJoinTeam (WebData Team)
     | RequestToFormTeam Int
-      --    | ResponseToFormTeam (WebData Team)
     | LeaveTeamClicked
     | ResponseLeaveTeam (WebData Team)
     | ConfirmTeamClicked
-    | ResponseGetTeamConfirmState (WebData Bool)
+    | ResponseGetUserTeamConfirmState (WebData TeamBool)
     | GetCourseResponse (WebData Course)
 
 
@@ -344,7 +342,7 @@ update sharedState msg model =
 
                         Just id ->
                             ( { model | teamRequest = response }
-                            , TeamRequests.teamConfirmedGet id IsTeamConfirmedResponse
+                            , TeamRequests.teamConfirmedGet model.courseId id IsTeamConfirmedResponse
                             , NoUpdate
                             )
 
@@ -357,8 +355,8 @@ update sharedState msg model =
         IsTeamConfirmedResponse response ->
             case response of
                 Success is_confirmed ->
-                    ( { model | isTeamConfirmed = is_confirmed }
-                    , Cmd.none
+                    ( { model | isTeamConfirmed = is_confirmed.bool }
+                    , TeamRequests.teamUserConfirmedGet model.courseId ResponseGetUserTeamConfirmState
                     , NoUpdate
                     )
 
@@ -366,13 +364,18 @@ update sharedState msg model =
                     ( model, Cmd.none, NoUpdate )
 
         RequestToJoinTeam team_id ->
-            ( model, TeamRequests.teamJoinPut model.courseId team_id ResponseToJoinTeam, NoUpdate )
+            ( model
+            , TeamRequests.teamJoinPut model.courseId
+                team_id
+                StudentTeamResponse
+            , NoUpdate
+            )
 
         RequestToFormTeam user_id ->
             ( model
             , TeamRequests.teamFormPost model.courseId
                 user_id
-                ResponseToJoinTeam
+                StudentTeamResponse
             , NoUpdate
             )
 
@@ -380,29 +383,26 @@ update sharedState msg model =
             ( model, TeamRequests.teamLeavePut model.courseId ResponseLeaveTeam, NoUpdate )
 
         ConfirmTeamClicked ->
-            ( model, TeamRequests.teamUserConfirmedPut model.courseId ResponseGetTeamConfirmState, NoUpdate )
-
-        ResponseToJoinTeam response ->
-            ( { model | teamRequest = response }
-            , TeamRequests.teamUserConfirmedGet model.courseId ResponseGetTeamConfirmState
-            , NoUpdate
-            )
+            ( model, TeamRequests.teamUserConfirmedPut model.courseId ResponseGetUserTeamConfirmState, NoUpdate )
 
         ResponseLeaveTeam response ->
             ( { model | teamRequest = response }
             , case response of
                 Success _ ->
-                    TeamRequests.teamUserConfirmedGet model.courseId ResponseGetTeamConfirmState
+                    Cmd.batch
+                        [ TeamRequests.teamUserConfirmedGet model.courseId ResponseGetUserTeamConfirmState
+                        , TeamRequests.teamIncompleteGet model.courseId IncompleteTeamsResponse
+                        ]
 
                 _ ->
                     Cmd.none
             , NoUpdate
             )
 
-        ResponseGetTeamConfirmState (Success iConfirmed) ->
-            ( { model | iConfirmedTeam = iConfirmed }, Cmd.none, NoUpdate )
+        ResponseGetUserTeamConfirmState (Success iConfirmed) ->
+            ( { model | iConfirmedTeam = iConfirmed.bool }, Cmd.none, NoUpdate )
 
-        ResponseGetTeamConfirmState _ ->
+        ResponseGetUserTeamConfirmState _ ->
             ( model, Cmd.none, NoUpdate )
 
         CourseRoleResponse (Success roles) ->
@@ -1247,11 +1247,11 @@ view sharedState model =
                 [ widePage_mw8 <| [ viewCourseInfo sharedState model ]
                 , viewExams sharedState model
                 , normalPage <|
-                    [ viewExerciseTeam sharedState model
-                    , viewSheets sharedState model
+                    [ viewSheets sharedState model
                     , viewMaterials sharedState model Slide
                     , viewMaterials sharedState model Supplementary
                     , viewDetermineGroupDisplay role sharedState model
+                    , viewExerciseTeam sharedState model
                     , viewDetermineTeamOrSearch role sharedState model
                     ]
                 ]
@@ -1933,62 +1933,54 @@ viewTeamOfStudent team =
     rContainer <|
         [ rRowHeader "My Team"
         , div [ classes [ TC.flex, TC.justify_between ] ]
-            (List.map
-                (\name -> text name)
-                team.members
-                ++ [ button
-                        [ Styles.buttonRedStyle
-                        , classes [ TC.ph2, TC.pv2 ]
-                        , onClick LeaveTeamClicked
-                        ]
-                        [ text "Leave" ]
-                   ]
-            )
+            [ text (String.join ", " team.members)
+            , button
+                [ Styles.buttonRedStyle
+                , classes [ TC.ph2, TC.pv2 ]
+                , onClick LeaveTeamClicked
+                ]
+                [ text "Leave" ]
+            ]
         ]
 
 
 viewConfirmView : Team -> Bool -> Html Msg
 viewConfirmView team confirmed_team =
+    let
+        body =
+            if confirmed_team then
+                [ span [ classes [ TC.dark_green ] ] [ text "Wait for members to agree" ]
+                , button
+                    [ Styles.buttonRedStyle
+                    , classes [ TC.ph2, TC.pv2 ]
+                    , onClick LeaveTeamClicked
+                    ]
+                    [ text "Leave" ]
+                ]
+
+            else
+                [ span [ classes [ TC.dark_red ] ] [ text "Confirm or leave" ]
+                , div []
+                    [ button
+                        [ Styles.buttonGreenStyle
+                        , classes [ TC.ph2, TC.pv2 ]
+                        , onClick ConfirmTeamClicked
+                        ]
+                        [ text "Confirm" ]
+                    , button
+                        [ Styles.buttonRedStyle
+                        , classes [ TC.ph2, TC.pv2 ]
+                        , onClick LeaveTeamClicked
+                        ]
+                        [ text "Leave" ]
+                    ]
+                ]
+    in
     rContainer <|
         [ rRowHeader "My Team"
         , div [ classes [ TC.flex, TC.justify_between ] ]
-            (List.map
-                (\name -> text name)
-                team.members
-                ++ (if confirmed_team then
-                        [ span [ classes [ TC.dark_green ] ] [ text "Waiting for members to agree" ]
-                        , button
-                            [ Styles.buttonRedStyle
-                            , classes [ TC.ph2, TC.pv2 ]
-                            , onClick LeaveTeamClicked
-                            ]
-                            [ text "Leave" ]
-                        ]
-
-                    else
-                        [ span [ classes [ TC.dark_red ] ] [ text "Confirm or leave" ]
-                        , div []
-                            [ button
-                                [ Styles.buttonGreenStyle
-                                , classes [ TC.ph2, TC.pv2 ]
-                                , onClick ConfirmTeamClicked
-                                ]
-                                [ text "Confirm" ]
-                            , button
-                                [ Styles.buttonRedStyle
-                                , classes [ TC.ph2, TC.pv2 ]
-                                , onClick LeaveTeamClicked
-                                ]
-                                [ text "Leave" ]
-                            ]
-                        ]
-                   )
-            )
+            (text (String.join ", " team.members) :: body)
         ]
-
-
-
--- TODO: Confirm view
 
 
 viewExerciseTeamRequestTable : sharedState -> Model -> Html Msg
@@ -2003,24 +1995,24 @@ viewExerciseTeamRequestTable sharedState model =
                                 [ td []
                                     [ text
                                         (String.join ", " team.members)
-                                    , td []
-                                        [ button
-                                            [ Styles.buttonGreenStyle
-                                            , case team.id of
-                                                Just team_id ->
-                                                    onClick
-                                                        (RequestToJoinTeam
-                                                            team_id
-                                                        )
+                                    ]
+                                , td []
+                                    [ button
+                                        [ Styles.buttonGreenStyle
+                                        , case team.id of
+                                            Just team_id ->
+                                                onClick
+                                                    (RequestToJoinTeam
+                                                        team_id
+                                                    )
 
-                                                Nothing ->
-                                                    onClick
-                                                        (RequestToFormTeam
-                                                            team.user_id
-                                                        )
-                                            ]
-                                            [ text "Join" ]
+                                            Nothing ->
+                                                onClick
+                                                    (RequestToFormTeam
+                                                        team.user_id
+                                                    )
                                         ]
+                                        [ text "Join" ]
                                     ]
                                 ]
                         )
@@ -2040,8 +2032,8 @@ viewExerciseTeamRequestTable sharedState model =
                         [ div [] [ span [] [ text "Request Join" ] ] ]
                     ]
                 ]
+            , tbody [] table_body
             ]
-        , tbody [] table_body
         ]
 
 

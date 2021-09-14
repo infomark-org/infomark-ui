@@ -12,7 +12,9 @@ module Api.Request.Team exposing
 import Api.Data.Team
     exposing
         ( Team
+        , TeamBool
         , teamDecoder
+        , teamBoolDecoder
         )
 import Api.Endpoint
     exposing
@@ -42,15 +44,18 @@ teamIncompleteGet courseId msg =
     get (unwrap <| teamIncomplete courseId) msg <| Decode.list teamDecoder
 
 
-teamConfirmedGet : Int -> (WebData Bool -> msg) -> Cmd msg
-teamConfirmedGet teamId msg =
-    get (unwrap <| teamConfirmed teamId) msg <| Decode.bool
+teamConfirmedGet : Int -> Int -> (WebData TeamBool -> msg) -> Cmd msg
+teamConfirmedGet courseId teamId msg =
+    get (unwrap <| teamConfirmed courseId teamId) msg <| teamBoolDecoder
 
 
 teamJoinPut : Int -> Int -> (WebData Team -> msg) -> Cmd msg
 teamJoinPut courseId teamId msg =
     put (unwrap <| teamJoin courseId)
-        (Http.jsonBody (Encode.int teamId))
+        (Encode.object
+        [ ("team_id", Encode.int teamId)
+        ] |> Http.jsonBody
+        )
         msg
     <|
         teamDecoder
@@ -59,7 +64,10 @@ teamJoinPut courseId teamId msg =
 teamFormPost : Int -> Int -> (WebData Team -> msg) -> Cmd msg
 teamFormPost courseId userId msg =
     post (unwrap <| teamForm courseId)
-        (Http.jsonBody (Encode.int userId))
+        (Encode.object
+        [ ("user_id", Encode.int userId)
+        ] |> Http.jsonBody
+        )
         msg
     <|
         teamDecoder
@@ -74,18 +82,18 @@ teamLeavePut courseId msg =
         teamDecoder
 
 
-teamUserConfirmedGet : Int -> (WebData Bool -> msg) -> Cmd msg
+teamUserConfirmedGet : Int -> (WebData TeamBool -> msg) -> Cmd msg
 teamUserConfirmedGet courseId msg =
-    get (unwrap <| teamUserConfirmed courseId) msg <| Decode.bool
+    get (unwrap <| teamUserConfirmed courseId) msg <| teamBoolDecoder
 
 
-teamUserConfirmedPut : Int -> (WebData Bool -> msg) -> Cmd msg
+teamUserConfirmedPut : Int -> (WebData TeamBool -> msg) -> Cmd msg
 teamUserConfirmedPut courseId msg =
     put (unwrap <| teamUserConfirmed courseId)
         Http.emptyBody
         msg
     <|
-        Decode.bool
+        teamBoolDecoder
 
 
 teamGet : Int -> (WebData Team -> msg) -> Cmd msg
