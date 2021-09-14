@@ -171,6 +171,7 @@ type Msg
     | ResponseLeaveTeam (WebData Team)
     | ConfirmTeamClicked
     | ResponseGetUserTeamConfirmState (WebData TeamBool)
+    | ResponsePutUserTeamConfirmState (WebData TeamBool)
     | GetCourseResponse (WebData Course)
 
 
@@ -383,7 +384,11 @@ update sharedState msg model =
             ( model, TeamRequests.teamLeavePut model.courseId ResponseLeaveTeam, NoUpdate )
 
         ConfirmTeamClicked ->
-            ( model, TeamRequests.teamUserConfirmedPut model.courseId ResponseGetUserTeamConfirmState, NoUpdate )
+            ( model
+            , TeamRequests.teamUserConfirmedPut model.courseId
+                ResponsePutUserTeamConfirmState
+            , NoUpdate
+            )
 
         ResponseLeaveTeam response ->
             ( { model | teamRequest = response }
@@ -403,6 +408,26 @@ update sharedState msg model =
             ( { model | iConfirmedTeam = iConfirmed.bool }, Cmd.none, NoUpdate )
 
         ResponseGetUserTeamConfirmState _ ->
+            ( model, Cmd.none, NoUpdate )
+
+        ResponsePutUserTeamConfirmState (Success iConfirmed) ->
+            let
+                request =
+                    case model.teamRequest of
+                        Success team ->
+                            case team.id of
+                                Just id ->
+                                    TeamRequests.teamConfirmedGet model.courseId id IsTeamConfirmedResponse
+
+                                Nothing ->
+                                    Cmd.none
+
+                        _ ->
+                            Cmd.none
+            in
+            ( { model | iConfirmedTeam = iConfirmed.bool }, request, NoUpdate )
+
+        ResponsePutUserTeamConfirmState _ ->
             ( model, Cmd.none, NoUpdate )
 
         CourseRoleResponse (Success roles) ->
