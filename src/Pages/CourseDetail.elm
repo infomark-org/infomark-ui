@@ -168,6 +168,8 @@ type Msg
     | RequestToJoinTeam Int
     | RequestToFormTeam Int
     | LeaveTeamClicked
+    | SureToLeaveTeamClicked
+    | DontLeaveTeamClicked
     | ResponseLeaveTeam (WebData Team)
     | ConfirmTeamClicked
     | ResponseGetUserTeamConfirmState (WebData TeamBool)
@@ -190,6 +192,8 @@ type alias Model =
     , courseRequest : WebData Course
     , teamRequest : WebData Team
     , isTeamConfirmed : Bool
+    , wantsToLeaveTeam : Bool
+    , areYouSureToLeaveTeam : Bool
     , iConfirmedTeam : Bool
     , teamCountRequest : WebData TeamCount
     , incompleteTeamsRequest : WebData (List Team)
@@ -235,6 +239,8 @@ init id =
       , newExamVisible = False
       , teamRequest = NotAsked
       , isTeamConfirmed = False
+      , wantsToLeaveTeam = False
+      , areYouSureToLeaveTeam = False
       , teamCountRequest = NotAsked
       , iConfirmedTeam = False
       , incompleteTeamsRequest = NotAsked
@@ -381,7 +387,13 @@ update sharedState msg model =
             )
 
         LeaveTeamClicked ->
-            ( model, TeamRequests.teamLeavePut model.courseId ResponseLeaveTeam, NoUpdate )
+            ( { model | wantsToLeaveTeam = True }, Cmd.none, NoUpdate )
+
+        SureToLeaveTeamClicked ->
+            ( { model | wantsToLeaveTeam = False }, TeamRequests.teamLeavePut model.courseId ResponseLeaveTeam, NoUpdate )
+
+        DontLeaveTeamClicked ->
+            ( { model | wantsToLeaveTeam = False }, Cmd.none, NoUpdate )
 
         ConfirmTeamClicked ->
             ( model
@@ -1943,14 +1955,41 @@ viewExerciseTeamStudent sharedState model =
                     viewExerciseTeamRequestTable sharedState model
 
                 Just team_id ->
-                    if model.isTeamConfirmed then
-                        viewTeamOfStudent team
-
+                    if model.wantsToLeaveTeam then
+                        viewAreYouSureToLeave team
                     else
-                        viewConfirmView team model.iConfirmedTeam
+                        if model.isTeamConfirmed then
+                            viewTeamOfStudent team
+                        else
+                            viewConfirmView team model.iConfirmedTeam
 
         _ ->
             text "Team not loaded"
+
+
+viewAreYouSureToLeave : Team -> Html Msg
+viewAreYouSureToLeave team =
+    rContainer <|
+        [ rRowHeader "My Team"
+        , div [ classes [ TC.flex, TC.justify_between ] ]
+            [ text (String.join ", " team.members)
+            , span [ classes [ TC.b ] ] [ text "Are you sure?" ]
+            , div []
+                [ button
+                    [ Styles.buttonRedStyle
+                    , classes [ TC.pa1]
+                    , onClick SureToLeaveTeamClicked
+                    ]
+                    [ text "Yes Leave" ]
+                , button
+                    [ Styles.buttonGreenStyle
+                    , classes [ TC.pa1 ]
+                    , onClick DontLeaveTeamClicked
+                    ]
+                    [ text "No Stay" ]
+                ]
+            ]
+        ]
 
 
 viewTeamOfStudent : Team -> Html Msg
@@ -1961,7 +2000,7 @@ viewTeamOfStudent team =
             [ text (String.join ", " team.members)
             , button
                 [ Styles.buttonRedStyle
-                , classes [ TC.ph2, TC.pv2 ]
+                , classes [ TC.pa1 ]
                 , onClick LeaveTeamClicked
                 ]
                 [ text "Leave" ]
@@ -1977,7 +2016,7 @@ viewConfirmView team confirmed_team =
                 [ span [ classes [ TC.dark_green ] ] [ text "Wait for members to agree" ]
                 , button
                     [ Styles.buttonRedStyle
-                    , classes [ TC.ph2, TC.pv2 ]
+                    , classes [ TC.pa1 ]
                     , onClick LeaveTeamClicked
                     ]
                     [ text "Leave" ]
@@ -1988,13 +2027,13 @@ viewConfirmView team confirmed_team =
                 , div []
                     [ button
                         [ Styles.buttonGreenStyle
-                        , classes [ TC.ph2, TC.pv2 ]
+                        , classes [ TC.pa1 ]
                         , onClick ConfirmTeamClicked
                         ]
                         [ text "Confirm" ]
                     , button
                         [ Styles.buttonRedStyle
-                        , classes [ TC.ph2, TC.pv2 ]
+                        , classes [ TC.pa1 ]
                         , onClick LeaveTeamClicked
                         ]
                         [ text "Leave" ]
@@ -2016,7 +2055,7 @@ viewExerciseTeamRequestTable sharedState model =
                 Success incompleteTeams ->
                     List.map
                         (\team ->
-                            tr [ Styles.textStyle ]
+                            tr [ Styles.textStyle, classes [ TC.pa1 ] ]
                                 [ td []
                                     [ text
                                         (String.join ", " team.members)
@@ -2024,6 +2063,7 @@ viewExerciseTeamRequestTable sharedState model =
                                 , td []
                                     [ button
                                         [ Styles.buttonGreenStyle
+                                        , classes [ TC.pa1 ]
                                         , case team.id of
                                             Just team_id ->
                                                 onClick
