@@ -1957,11 +1957,12 @@ viewExerciseTeamStudent sharedState model =
                 Just team_id ->
                     if model.wantsToLeaveTeam then
                         viewAreYouSureToLeave team
+
+                    else if model.isTeamConfirmed then
+                        viewTeamOfStudent team
+
                     else
-                        if model.isTeamConfirmed then
-                            viewTeamOfStudent team
-                        else
-                            viewConfirmView team model.iConfirmedTeam
+                        viewConfirmView team model.iConfirmedTeam
 
         _ ->
             text "Team not loaded"
@@ -1977,7 +1978,7 @@ viewAreYouSureToLeave team =
             , div []
                 [ button
                     [ Styles.buttonRedStyle
-                    , classes [ TC.pa1]
+                    , classes [ TC.pa1 ]
                     , onClick SureToLeaveTeamClicked
                     ]
                     [ text "Yes Leave" ]
@@ -2085,20 +2086,30 @@ viewExerciseTeamRequestTable sharedState model =
 
                 _ ->
                     []
+
+        element =
+            case model.groupModel of
+                Just (DetailModel _) ->
+                    table [ class "striped", class "overview-table" ]
+                        [ thead []
+                            [ tr [ Styles.textStyle ]
+                                [ th [ class "student-overview-head-horizontal" ]
+                                    [ div [] [ span [] [ text "Incomplete Team" ] ] ]
+                                , th [ class "student-overview-head-horizontal" ]
+                                    [ div [] [ span [] [ text "Request Join" ] ] ]
+                                ]
+                            ]
+                        , tbody [] table_body
+                        ]
+
+                _ ->
+                    span []
+                        [ text "You will be able to select an exercise team as soon as you have been assigned to a exercise group."
+                        ]
     in
     rContainer <|
         [ rRowHeader "Exercise Team"
-        , table [ class "striped", class "overview-table" ]
-            [ thead []
-                [ tr [ Styles.textStyle ]
-                    [ th [ class "student-overview-head-horizontal" ]
-                        [ div [] [ span [] [ text "Incomplete Team" ] ] ]
-                    , th [ class "student-overview-head-horizontal" ]
-                        [ div [] [ span [] [ text "Request Join" ] ] ]
-                    ]
-                ]
-            , tbody [] table_body
-            ]
+        , element
         ]
 
 
