@@ -23,6 +23,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Http
 import I18n
+import Markdown as MD
 import RemoteData exposing (RemoteData(..), WebData)
 import Routing.Helpers exposing (Route(..), reverseRoute)
 import Set exposing (Set)
@@ -32,7 +33,7 @@ import Tachyons exposing (classes, tachyons)
 import Tachyons.Classes as TC
 import Time
 import Utils.Styles as Styles
-import Markdown as MD
+
 
 type Msg
     = NavigateTo Route
@@ -140,7 +141,13 @@ update sharedState msg model =
                         | getGradeSendResponse = Dict.insert gradeId response model.getGradeSendResponse
                     }
             in
-            ( responseModel, Cmd.none, NoUpdate )
+            ( responseModel
+            , CourseRequests.courseGradesGetPerTaskAndGroup model.courseId
+                model.taskId
+                model.groupId
+                GetGrades
+            , NoUpdate
+            )
 
         ToggleGroupChanger ->
             ( { model | groupChangerVisible = not model.groupChangerVisible }
@@ -347,12 +354,13 @@ viewTask sharedState model task grade feedback =
                             (Feedback grade.id)
                             []
                             -- TODO do not ignore errors
-                            SetField)
-                [ CE.inputLabel "Feedback Preview"
-                , CE.renderInTextBox
-                    (Maybe.withDefault "" <| Dict.get grade.id model.feedbackDict)
-                    True
-                ]
+                            SetField
+                        )
+                        [ CE.inputLabel "Feedback Preview"
+                        , CE.renderInTextBox
+                            (Maybe.withDefault "" <| Dict.get grade.id model.feedbackDict)
+                            True
+                        ]
                , CE.rRowExtraSpacing <|
                     CE.sliderInputElement
                         { label = "Punkte"
