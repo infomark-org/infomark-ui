@@ -71,13 +71,13 @@
     "action-save": "Save",
     "form-delete-account": "Delete your account? ⚠ This cannot be undone and you lose every submission and contribution to all courses.",
     "action-delete": "Delete",
-		"submission-closed": "Submission Closed",
-		"sumbission-was-due": "The sheet was due",
-		"submission-due-time": " at ",
-	  "submission-time": "Deadline",
-		"max-points": "Maximum Points",
-		"reached-points": "Reached Points" ,
-		"maximum-reachable": "maximum reachable: ",
-		"upload-instcutions-text": "For text tasks upload a .zip file that contains a plain .txt file with your answers.",
-		"upload-instcutions-cpp": "For c++ tasks compress the edited submission folder from the template and upload it as .zip file."
+	"submission-closed": "Submission Closed",
+	"sumbission-was-due": "The sheet was due",
+	"submission-due-time": " at ",
+	"submission-time": "Deadline",
+	"max-points": "Maximum Points",
+	"reached-points": "Reached Points" ,
+	"maximum-reachable": "maximum reachable: ",
+	"upload-instructions-text": "For text tasks upload a .zip file that contains a plain .txt file with your answers.",
+	"upload-instructions-cpp": "For c++ tasks compress the edited submission folder from the template and upload it as .zip file."
 }

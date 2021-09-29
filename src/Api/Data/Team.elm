@@ -3,7 +3,6 @@ module Api.Data.Team exposing
     , TeamBool
     , teamBoolDecoder
     , teamDecoder
-    , teamEncoder
     )
 
 import Json.Decode as Decode exposing (Decoder)
@@ -16,6 +15,7 @@ type alias Team =
     { id : Maybe Int
     , user_id : Int
     , members : List String
+    , member_mails : Maybe (List String)
     }
 
 
@@ -29,15 +29,7 @@ teamDecoder =
         |> required "id" (Decode.nullable Decode.int)
         |> required "user_id" Decode.int
         |> required "members" (Decode.list Decode.string)
-
-
-teamEncoder : Team -> Encode.Value
-teamEncoder model =
-    Encode.object
-        [ ( "id", maybe Encode.int model.id )
-        , ( "use_id", Encode.int model.user_id )
-        , ( "members", Encode.list Encode.string model.members )
-        ]
+        |> required "member_mails" (Decode.nullable (Decode.list Decode.string))
 
 
 teamBoolDecoder : Decoder TeamBool

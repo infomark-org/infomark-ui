@@ -71,13 +71,13 @@
     "action-save": "Speichern",
     "form-delete-account": "Account löschen? ⚠ Dieser Vorgang kann nicht rückgängig gemacht werden.",
     "action-delete": "Löschen",
-		"submission-closed": "Abgabezeit vorbei",
-		"sumbission-was-due": "Abgabe war möglich bis",
-		"submission-due-time": " um ",
-	  "submission-time": "Abgabezeit",
-		"max-points": "Maximale Punkte" ,
-		"reached-points": "Erreichte Punkte",
-		"maximum-reachable": "maximal erreichbar: ",
-		"upload-instcutions-text": "Für textaufgaben lade deine Antworten in einer verzippten Textdatei hoch.",
-		"upload-instcutions-cpp": "Für c++ aufgaben lade den von dir bearbeiten, verzippten submission Ordner aus dem template hoch."
+	"submission-closed": "Abgabezeit vorbei",
+	"sumbission-was-due": "Abgabe war möglich bis",
+	"submission-due-time": " um ",
+	"submission-time": "Abgabezeit",
+	"max-points": "Maximale Punkte" ,
+	"reached-points": "Erreichte Punkte",
+	"maximum-reachable": "maximal erreichbar: ",
+	"upload-instructions-text": "Für textaufgaben lade deine Antworten in einer verzippten Textdatei hoch.",
+	"upload-instructions-cpp": "Für c++ aufgaben lade den von dir bearbeiten, verzippten submission Ordner aus dem template hoch."
 }

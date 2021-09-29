@@ -1995,10 +1995,26 @@ viewAreYouSureToLeave team =
 
 viewTeamOfStudent : Team -> Html Msg
 viewTeamOfStudent team =
+    let
+        mails =
+            case team.member_mails of
+                Just mail_list ->
+                    div []
+                        (List.map
+                        (\mail -> small [classes [TC.db]] [ text mail ])
+                        mail_list)
+
+                Nothing ->
+                    text ""
+    in
     rContainer <|
         [ rRowHeader "My Team"
         , div [ classes [ TC.flex, TC.justify_between ] ]
-            [ text (String.join ", " team.members)
+            [ div []
+                [ span [] [ text (String.join ", " team.members) ]
+                , br [] [ text "" ]
+                , mails
+                ]
             , button
                 [ Styles.buttonRedStyle
                 , classes [ TC.pa1 ]
