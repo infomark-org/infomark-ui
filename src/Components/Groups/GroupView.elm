@@ -180,7 +180,11 @@ viewStudentSummary model summary =
             summary.sheets
 
         achievements =
-            summary.achievements
+            case summary.achievements of
+                    Just achivement ->
+                            achivement
+                    Nothing ->
+                            []
 
         achievements_sorted =
             List.sortWith

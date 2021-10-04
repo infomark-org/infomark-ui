@@ -30,7 +30,7 @@ type alias Achievement =
 
 type alias GroupSummary =
     { sheets : List Sheet
-    , achievements : List Achievement
+    , achievements : Maybe (List Achievement)
     }
 
 
@@ -62,4 +62,10 @@ decoder : Decoder GroupSummary
 decoder =
     Decode.succeed GroupSummary
         |> required "sheets" (Decode.list sheetDecoder)
-        |> required "achievements" (Decode.list achievementDecoder)
+        |> optional "achievements"
+            (Decode.nullable
+                (Decode.list
+                    achievementDecoder
+                )
+            )
+            Nothing
