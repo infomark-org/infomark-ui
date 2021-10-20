@@ -1508,6 +1508,10 @@ viewExamDetails sharedState exam =
 
 viewExamEnrollmentForm : SharedState -> Model -> Html Msg
 viewExamEnrollmentForm sharedState model =
+    let
+        t =
+            I18n.get sharedState.translations
+    in
     rRow
         (List.map
             (\( id, e ) ->
@@ -1519,7 +1523,7 @@ viewExamEnrollmentForm sharedState model =
                                     div []
                                         [ viewExamDetails sharedState e
                                         , rRow <|
-                                            [ text "Sie haben nicht an dieser Klausur teilgenommen."
+                                            [ text (t "exam-not-participated")
                                             ]
                                         ]
 
@@ -1527,16 +1531,16 @@ viewExamEnrollmentForm sharedState model =
                                     div []
                                         [ viewExamDetails sharedState e
                                         , rRow <|
-                                            [ text "Sie haben mit der Note '"
+                                            [ text (t "exam-you-succeeded")
                                             , span
                                                 [ classes [ TC.b ] ]
                                                 [ text enrollment.mark
                                                 ]
-                                            , text "' bestanden. Eventuelle Boni sind bereits mit eingerechnet."
+                                            , text (t "exam-succeed-w-boni")
                                             ]
                                         , rRow <|
                                             [ span [ classes [ TC.f7 ] ]
-                                                [ text "Die Angabe zur Note ist ohne Gewähr und nur zu Ihrer Information. Es gilt die ans Prüfungssekretariat gemeldete Note."
+                                                [ text (t "exam-disclaimer")
                                                 ]
                                             ]
                                         ]
@@ -1545,15 +1549,15 @@ viewExamEnrollmentForm sharedState model =
                                     div []
                                         [ viewExamDetails sharedState e
                                         , rRow <|
-                                            [ text "Sie sind mit der Note '"
+                                            [ text (t "exam-you-failed")
                                             , span
                                                 [ classes [ TC.b ] ]
                                                 [ text enrollment.mark
                                                 ]
-                                            , text "' durchgefallen."
+                                            , text (t "exam-fail")
                                             , rRow <|
                                                 [ span [ classes [ TC.f7 ] ]
-                                                    [ text "Die Angabe zur Note ist ohne Gewähr und nur zu Ihrer Information. Es gilt die ans Prüfungssekretariat gemeldete Note."
+                                                    [ text (t "exam-disclaimer")
                                                     ]
                                                 ]
                                             ]
@@ -1562,7 +1566,7 @@ viewExamEnrollmentForm sharedState model =
                                 _ ->
                                     div []
                                         [ viewExamDetails sharedState e
-                                        , text "Undefinierter Zustand."
+                                        , text (t "exam-undefined")
                                         ]
 
                         Nothing ->
@@ -1585,14 +1589,14 @@ viewExamEnrollmentForm sharedState model =
                         enrolledInfo =
                             if Dict.member id model.examEnrollments then
                                 span [ classes [ TC.dark_green ] ]
-                                    [ text "Sie sind zu der Klausur angemeldet. "
-                                    , text "Entfernen Sie das Häkchen, wenn Sie nicht mitschreiben möchten"
+                                    [ text (t "exam-you-are-registerd")
+                                    , text (t "exam-remove-tick")
                                     ]
 
                             else
                                 span [ classes [ TC.dark_red ] ]
-                                    [ text "Sie sind NICHT zu der Klausur angemeldet. "
-                                    , text "Setzten Sie das Häkchen, wenn Sie mitschreiben möchten."
+                                    [ text (t "exam-you-are-not-registerd")
+                                    , text (t "exam-add-tick")
                                     ]
                     in
                     rRow
