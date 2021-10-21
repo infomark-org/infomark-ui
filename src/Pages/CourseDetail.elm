@@ -1536,7 +1536,7 @@ viewExamEnrollmentForm sharedState model =
                                                 [ classes [ TC.b ] ]
                                                 [ text enrollment.mark
                                                 ]
-                                            , text (t "exam-succeed-w-boni")
+                                            , text (t "exam-succeed-with-boni")
                                             ]
                                         , rRow <|
                                             [ span [ classes [ TC.f7 ] ]
