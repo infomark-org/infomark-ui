@@ -3,6 +3,7 @@ module Components.CommonElements exposing
     , PbbResultState(..)
     , PbbState(..)
     , checkBox
+    , checkBoxError
     , checkBoxes
     , dateElement
     , dateInputElement
@@ -83,6 +84,34 @@ viewFormErrors field errors =
         |> ul [ classes [ TC.list, TC.pl0, TC.center ] ]
 
 
+checkBoxError: { label : String
+        , description : Html msg
+        , isChecked : Bool
+        , message : msg
+        } -> field -> List (field, String) -> Html msg
+checkBoxError config field errors = 
+            div
+                [ classes
+                    [ TC.ma0
+                    , TC.pv2
+                    , TC.ph0
+                    , TC.w_100
+                    , TC.f5
+                    , TC.black_80
+                    ]
+                ]
+                [ input
+                    [ type_ "checkbox"
+                    , onClick config.message
+                    , checked config.isChecked
+                    , classes [ TC.ma1 ]
+                    ]
+                    []
+                , span [ classes [ TC.b ] ] [ text config.label ]
+                , viewFormErrors field errors
+                , rRow [ config.description ]
+                ]
+
 checkBox: { label : String
         , description : Html msg
         , isChecked : Bool
@@ -109,7 +138,6 @@ checkBox config =
                 , span [ classes [ TC.b ] ] [ text config.label ]
                 , rRow [ config.description ]
                 ]
-
 
 checkBoxes :
     List

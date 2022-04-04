@@ -5,7 +5,7 @@ import Api.Data.UserAccount exposing (UserAccount)
 import Api.Request.Account exposing (accountPost)
 import Browser
 import Browser.Navigation exposing (pushUrl)
-import Components.CommonElements exposing (checkBox, inputElement)
+import Components.CommonElements exposing (checkBoxError, inputElement)
 import Components.Dialog as Dialog
 import Components.Toasty
 import Html exposing (..)
@@ -250,7 +250,6 @@ view sharedState model =
                         ]
                         [ text (t "page-title-registration") ]
 
-                    -- TODO: Replace with translation
                     , div [ classes [ TC.w_100 ] ]
                         -- GRID!
                         [ div [ classes [ TC.mt4, TC.cf, TC.ph2_ns ] ]
@@ -360,23 +359,27 @@ view sharedState model =
                                     model.errors
                                     SetField
                             ]
-                        ]
-                    , checkBox
-                        { label = t "registration-plagiarism-label"
-                        , description =
-                            div []
-                                [ text (t "registration-plagiarism-description-first")
-                                , a
-                                    [ target "_blank"
-                                    , href "https://uni-tuebingen.de/securedl/sdl-eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2NDkwNzkxMTAsImV4cCI6MTY0OTE2OTEwNCwidXNlciI6MCwiZ3JvdXBzIjpbMCwtMV0sImZpbGUiOiJmaWxlYWRtaW5cL1VuaV9UdWViaW5nZW5cL0Zha3VsdGFldGVuXC9JbmZvS29nbmlcL1dTSVwvRG9rdW1lbnRlXC9TdHVkaXVtXC9Eb3dubG9hZFwvQWt0dWVsbGVzX1NlbWVzdGVyXC8yMDE5MDUxNl9VbWdhbmdfbWl0X1BsYWdpYXJpc211cy5wZGYiLCJwYWdlIjo3NDM1MX0.Vpfjlh8DY08gXBbCFQ6PlOEjL3wJuhXjLbfyXRC03_4/20190516_Umgang_mit_Plagiarismus.pdf"
-                                    , Styles.linkRedStyle
+                        , div [ classes [ TC.mt3, TC.cf, TC.ph2_ns ] ]
+                         [ checkBoxError
+                            { label = t "registration-plagiarism-label"
+                            , description =
+                                div []
+                                    [ text (t "registration-plagiarism-description-first")
+                                    , a
+                                        [ target "_blank"
+                                        , href "https://uni-tuebingen.de/securedl/sdl-eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2NDkwNzkxMTAsImV4cCI6MTY0OTE2OTEwNCwidXNlciI6MCwiZ3JvdXBzIjpbMCwtMV0sImZpbGUiOiJmaWxlYWRtaW5cL1VuaV9UdWViaW5nZW5cL0Zha3VsdGFldGVuXC9JbmZvS29nbmlcL1dTSVwvRG9rdW1lbnRlXC9TdHVkaXVtXC9Eb3dubG9hZFwvQWt0dWVsbGVzX1NlbWVzdGVyXC8yMDE5MDUxNl9VbWdhbmdfbWl0X1BsYWdpYXJpc211cy5wZGYiLCJwYWdlIjo3NDM1MX0.Vpfjlh8DY08gXBbCFQ6PlOEjL3wJuhXjLbfyXRC03_4/20190516_Umgang_mit_Plagiarismus.pdf"
+                                        , Styles.linkGoldStyle
+                                        ]
+                                        [ text (t "registration-plagiarism-description-link") ]
+                                    , text (t "registration-plagiarism-description-last")
                                     ]
-                                    [ text (t "registration-plagiarism-description-link") ]
-                                , text (t "registration-plagiarism-description-last")
-                                ]
-                        , isChecked = model.isPlagiarismClauseAccepted
-                        , message = TogglePlagiarismClauseAcceptance
-                        }
+                            , isChecked = model.isPlagiarismClauseAccepted
+                            , message = TogglePlagiarismClauseAcceptance
+                            }
+                            Plagiarism
+                            model.errors
+                            ]
+                        ]
                     , button
                         [ Styles.buttonGreyStyle
                         , classes [ TC.mt4, TC.w_100 ]
@@ -504,7 +507,7 @@ modelValidator =
             , Validate.ifTrue (\model -> isNegative model.studentNumber) ( StudentNumber, "Matrikelnummern sind positiv." )
             ]
         , ifBlank .subject ( Subject, "Bitte gib dein Fach ein." )
-        , Validate.ifFalse (\model -> model.isPlagiarismClauseAccepted) (Plagiarism, "Bitte bestätigen sie die Plagiatsregeln")
+        , Validate.ifFalse .isPlagiarismClauseAccepted (Plagiarism, "Bitte bestätigen sie die Plagiatsregeln")
         ]
 
 
