@@ -310,17 +310,17 @@ update sharedState msg model =
 view : SharedState -> Model -> Bool -> Html Msg
 view sharedState model deadlineReached =
     let
+        t =
+            I18n.get sharedState.translations
         upl =
             case model.gradeResponse of
                 Success grade ->
                     h2 [ classes [ TC.tl, TC.bn, TC.f6, TC.dark_green ] ]
-                        [ dd [ classes [ TC.ml0 ] ] [ text "Erfolgreich hochgeladen: ", DF.dateAndTimeFormatter sharedState grade.updated_at ] ]
+                        [ dd [ classes [ TC.ml0 ] ] [ text (t "successful-submission"), DF.dateAndTimeFormatter sharedState grade.updated_at ] ]
 
                 _ ->
-                    h2 [ classes [ TC.tl, TC.bn, TC.f6, TC.dark_red ] ] [ text "Noch nichts hochgeladen." ]
+                    h2 [ classes [ TC.tl, TC.bn, TC.f6, TC.dark_red ] ] [ text (t "no-submission-yet")]
 
-        t =
-            I18n.get sharedState.translations
     in
     rContainer <|
         rCollapsablePlain
@@ -419,7 +419,7 @@ view sharedState model deadlineReached =
                     [ case model.gradeResponse of
                         Success grade ->
                             datesDisplayContainer <|
-                                dateElement "Die Abgabe wurde zuletzt erfolgreich hochgeladen am: " <|
+                                dateElement (t "last-upload-text") <|
                                     DF.dateAndTimeFormatter sharedState grade.updated_at
 
                         _ ->
