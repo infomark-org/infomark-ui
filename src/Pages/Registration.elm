@@ -64,6 +64,7 @@ modelToBody sharedState model =
 type Msg
     = NavigateTo Route
     | Register Bool
+    | ShowNoRegister
     | SetField Field String
     | ToastyMsg (Toasty.Msg Components.Toasty.Toast)
     | RegistrationResponse (WebData User)
@@ -101,6 +102,12 @@ update sharedState msg model =
 
         Register force ->
             updateHandleRegister sharedState model force <| validate modelValidator model
+
+        ShowNoRegister ->
+            ( model
+            , Cmd.none
+            , ShowToast <| Components.Toasty.Error "Be Patient" "Registration is available soon."
+            )
 
         RegistrationResponse response ->
             updateHandleRegistrationResponse sharedState model response
@@ -213,7 +220,8 @@ view sharedState model =
                     , TC.pa4
                     , TC.black_40
                     ]
-                , onSubmit <| Register False
+                -- , onSubmit <| Register False  -- TODO: Enable Registration
+                , onSubmit <| ShowNoRegister
                 ]
                 [ fieldset
                     [ classes
@@ -267,7 +275,7 @@ view sharedState model =
                               <|
                                 inputElement
                                     { label = t "form-course-of-studies"
-                                    , placeholder = "Informatik / Medieninformatik / Medizininformatik / ..."
+                                    , placeholder = "Computer Science / Media Informatics / Bio Informatics / ..."
                                     , fieldType = "text"
                                     , value = model.subject
                                     }
@@ -345,12 +353,11 @@ view sharedState model =
                         [ Styles.buttonGreyStyle
                         , classes [ TC.mt4, TC.w_100 ]
                         ]
-                        [ text (t "form-register") ]
-
-                    -- TODO: Replace with translation
+                        [ text "Registration possible soon!" ]
+                        -- [ text (t "form-register") ]  -- TODO: Enable Registration
                     ]
                 , div [ classes [ TC.mt3 ] ]
-                    [ button [ onClick <| NavigateTo LoginRoute, Styles.linkGreyStyle ] [ text (t "form-login") ] --TODO: Replace with translation
+                    [ button [ onClick <| NavigateTo LoginRoute, Styles.linkGreyStyle ] [ text (t "form-login") ]
                     ]
                 ]
             ]
