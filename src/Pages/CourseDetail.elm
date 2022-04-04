@@ -1581,7 +1581,7 @@ viewExamEnrollmentForm sharedState model =
                                     ++ DF.shortDateFormatter sharedState e.exam_time
                                     ++ " "
                                     ++ DF.shortTimeFormatString sharedState e.exam_time
-                            , description = e.description
+                            , description = text e.description
                             , isChecked = Dict.member id model.examEnrollments
                             , message = ToggleEnrollToExam id
                             }

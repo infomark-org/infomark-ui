@@ -93,5 +93,9 @@
 	"exam-you-are-registerd": "You are registered for this exam. ",
 	"exam-you-are-not-registerd": "You are NOT registered to this exam. ",
 	"exam-remove-tick": "Remove the tick if you do NOT want to participate in the exam.",
-	"exam-add-tick": "Add the tick if you want to participate in the exam."
+	"exam-add-tick": "Add the tick if you want to participate in the exam.",
+    "registration-plagiarism-label": "Plagiarism Rules",
+    "registration-plagiarism-description-first": "I hereby confirm that I have read and accept the ",
+    "registration-plagiarism-description-link": "Leitlinen des Fachbereichs Informatik zum Umgang mit Plagiarismus.",
+    "registration-plagiarism-description-last": ""
 }

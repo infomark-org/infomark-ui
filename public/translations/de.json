@@ -93,5 +93,9 @@
 	"exam-you-are-registerd": "Sie sind zu der Klausur angemeldet. ",
 	"exam-you-are-not-registerd": "Sie sind NICHT zu der Klausur angemeldet. ",
 	"exam-remove-tick": "Entfernen Sie das Häkchen, wenn Sie nicht mitschreiben möchten.",
-	"exam-add-tick": "Setzen Sie das Häkchen, wenn Sie mitschreiben möchten."
+	"exam-add-tick": "Setzen Sie das Häkchen, wenn Sie mitschreiben möchten.",
+    "registration-plagiarism-label": "Plagiarismus Erklärung",
+    "registration-plagiarism-description-first": "Hiermit bestätige ich dass ich die ",
+    "registration-plagiarism-description-link": "Leitlinen des Fachbereichs Informatik zum Umgang mit Plagiarismus ",
+    "registration-plagiarism-description-last": "zur gelesen und zur Kenntnis genommen habe."
 }

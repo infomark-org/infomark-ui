@@ -2,6 +2,7 @@ module Components.CommonElements exposing
     ( PbbButtonState(..)
     , PbbResultState(..)
     , PbbState(..)
+    , checkBox
     , checkBoxes
     , dateElement
     , dateInputElement
@@ -81,17 +82,13 @@ viewFormErrors field errors =
         |> List.map (\( _, error ) -> li [ classes [ TC.red ] ] [ text error ])
         |> ul [ classes [ TC.list, TC.pl0, TC.center ] ]
 
-checkBoxes :
-    List
-        { label : String
-        , description : String
+
+checkBox: { label : String
+        , description : Html msg
         , isChecked : Bool
         , message : msg
-        }
-    -> List (Html msg)
-checkBoxes configs =
-    List.map
-        (\config ->
+        } -> Html msg
+checkBox config = 
             div
                 [ classes
                     [ TC.ma0
@@ -110,10 +107,23 @@ checkBoxes configs =
                     ]
                     []
                 , span [ classes [ TC.b ] ] [ text config.label ]
-                , rRow [ text config.description ]
+                , rRow [ config.description ]
                 ]
-        )
-        configs
+
+
+checkBoxes :
+    List
+        { label : String
+        , description : Html msg
+        , isChecked : Bool
+        , message : msg
+        }
+    -> List (Html msg)
+checkBoxes configs =
+    List.map
+        (\config -> checkBox config)
+       configs
+
 
 dateInputElement :
     { label : String
@@ -397,6 +407,7 @@ rCollapsable title collapsed collapseMsg ( show, hide ) childs =
                 childs
            )
 
+
 rCollapsablePlain : List (Html msg) -> Bool -> msg -> ( String, String ) -> List (Html msg) -> List (Html msg)
 rCollapsablePlain msgs collapsed collapseMsg ( show, hide ) childs =
     div
@@ -413,20 +424,21 @@ rCollapsablePlain msgs collapsed collapseMsg ( show, hide ) childs =
                 TC.mb0
             ]
         ]
-        ( msgs ++
-        [ button
-            [ Styles.buttonGreyStyle
-            , Styles.pillStyle
-            , onClick collapseMsg
-            ]
-            [ text <|
-                if collapsed then
-                    show
+        (msgs
+            ++ [ button
+                    [ Styles.buttonGreyStyle
+                    , Styles.pillStyle
+                    , onClick collapseMsg
+                    ]
+                    [ text <|
+                        if collapsed then
+                            show
 
-                else
-                    hide
-            ]
-        ] )
+                        else
+                            hide
+                    ]
+               ]
+        )
         :: (if collapsed then
                 [ text "" ]
 

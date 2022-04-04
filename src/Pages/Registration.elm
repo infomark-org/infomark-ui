@@ -3,8 +3,9 @@ module Pages.Registration exposing (Model, Msg(..), init, update, view)
 import Api.Data.User exposing (User)
 import Api.Data.UserAccount exposing (UserAccount)
 import Api.Request.Account exposing (accountPost)
+import Browser
 import Browser.Navigation exposing (pushUrl)
-import Components.CommonElements exposing (inputElement)
+import Components.CommonElements exposing (checkBox, inputElement)
 import Components.Dialog as Dialog
 import Components.Toasty
 import Html exposing (..)
@@ -37,6 +38,7 @@ type alias Model =
     , errors : List Error
     , toasties : Toasty.Stack Components.Toasty.Toast
     , noUniversityEmailDialogState : Dialog.State
+    , isPlagiarismClauseAccepted : Bool
     }
 
 
@@ -69,6 +71,7 @@ type Msg
     | ToastyMsg (Toasty.Msg Components.Toasty.Toast)
     | RegistrationResponse (WebData User)
     | NoUniversityMailWarningVisible Bool
+    | TogglePlagiarismClauseAcceptance
     | NoOp
 
 
@@ -86,6 +89,7 @@ init =
       , errors = []
       , toasties = Toasty.initialState
       , noUniversityEmailDialogState = False
+      , isPlagiarismClauseAccepted = False
       }
     , Cmd.none
     )
@@ -103,6 +107,7 @@ update sharedState msg model =
         Register force ->
             updateHandleRegister sharedState model force <| validate modelValidator model
 
+        -- TODO enable registration
         ShowNoRegister ->
             ( model
             , Cmd.none
@@ -121,6 +126,12 @@ update sharedState msg model =
 
         NoUniversityMailWarningVisible state ->
             ( { model | noUniversityEmailDialogState = state }, Cmd.none, NoUpdate )
+
+        TogglePlagiarismClauseAcceptance ->
+            ( { model | isPlagiarismClauseAccepted = not model.isPlagiarismClauseAccepted }
+            , Cmd.none
+            , NoUpdate
+            )
 
         NoOp ->
             ( model, Cmd.none, NoUpdate )
@@ -220,6 +231,7 @@ view sharedState model =
                     , TC.pa4
                     , TC.black_40
                     ]
+
                 -- , onSubmit <| Register False  -- TODO: Enable Registration
                 , onSubmit <| ShowNoRegister
                 ]
@@ -349,12 +361,29 @@ view sharedState model =
                                     SetField
                             ]
                         ]
+                    , checkBox
+                        { label = t "registration-plagiarism-label"
+                        , description =
+                            div []
+                                [ text (t "registration-plagiarism-description-first")
+                                , a
+                                    [ target "_blank"
+                                    , href "https://uni-tuebingen.de/securedl/sdl-eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2NDkwNzkxMTAsImV4cCI6MTY0OTE2OTEwNCwidXNlciI6MCwiZ3JvdXBzIjpbMCwtMV0sImZpbGUiOiJmaWxlYWRtaW5cL1VuaV9UdWViaW5nZW5cL0Zha3VsdGFldGVuXC9JbmZvS29nbmlcL1dTSVwvRG9rdW1lbnRlXC9TdHVkaXVtXC9Eb3dubG9hZFwvQWt0dWVsbGVzX1NlbWVzdGVyXC8yMDE5MDUxNl9VbWdhbmdfbWl0X1BsYWdpYXJpc211cy5wZGYiLCJwYWdlIjo3NDM1MX0.Vpfjlh8DY08gXBbCFQ6PlOEjL3wJuhXjLbfyXRC03_4/20190516_Umgang_mit_Plagiarismus.pdf"
+                                    , Styles.linkRedStyle
+                                    ]
+                                    [ text (t "registration-plagiarism-description-link") ]
+                                , text (t "registration-plagiarism-description-last")
+                                ]
+                        , isChecked = model.isPlagiarismClauseAccepted
+                        , message = TogglePlagiarismClauseAcceptance
+                        }
                     , button
                         [ Styles.buttonGreyStyle
                         , classes [ TC.mt4, TC.w_100 ]
                         ]
                         [ text "Registration possible soon!" ]
-                        -- [ text (t "form-register") ]  -- TODO: Enable Registration
+
+                    -- [ text (t "form-register") ]  -- TODO: Enable Registration
                     ]
                 , div [ classes [ TC.mt3 ] ]
                     [ button [ onClick <| NavigateTo LoginRoute, Styles.linkGreyStyle ] [ text (t "form-login") ]
@@ -410,6 +439,7 @@ type Field
     | StudentNumber
     | Semester
     | Subject
+    | Plagiarism
 
 
 setField : Model -> Field -> String -> Model
@@ -438,6 +468,9 @@ setField model field value =
 
         Subject ->
             { model | subject = value }
+
+        Plagiarism ->
+            model
 
 
 type alias Error =
@@ -471,6 +504,7 @@ modelValidator =
             , Validate.ifTrue (\model -> isNegative model.studentNumber) ( StudentNumber, "Matrikelnummern sind positiv." )
             ]
         , ifBlank .subject ( Subject, "Bitte gib dein Fach ein." )
+        , Validate.ifFalse (\model -> model.isPlagiarismClauseAccepted) (Plagiarism, "Bitte bestätigen sie die Plagiatsregeln")
         ]
 
 
