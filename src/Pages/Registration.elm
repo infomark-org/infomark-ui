@@ -66,7 +66,7 @@ modelToBody sharedState model =
 type Msg
     = NavigateTo Route
     | Register Bool
-    | ShowNoRegister
+    -- | ShowNoRegister
     | SetField Field String
     | ToastyMsg (Toasty.Msg Components.Toasty.Toast)
     | RegistrationResponse (WebData User)
@@ -107,12 +107,12 @@ update sharedState msg model =
         Register force ->
             updateHandleRegister sharedState model force <| validate modelValidator model
 
-        -- TODO enable registration
-        ShowNoRegister ->
-            ( model
-            , Cmd.none
-            , ShowToast <| Components.Toasty.Error "Be Patient" "Registration is available soon."
-            )
+        -- TODO disable registration
+        -- ShowNoRegister ->
+        --     ( model
+        --     , Cmd.none
+        --     , ShowToast <| Components.Toasty.Error "Be Patient" "Registration is available soon."
+        --     )
 
         RegistrationResponse response ->
             updateHandleRegistrationResponse sharedState model response
@@ -232,8 +232,8 @@ view sharedState model =
                     , TC.black_40
                     ]
 
-                -- , onSubmit <| Register False  -- TODO: Enable Registration
-                , onSubmit <| ShowNoRegister
+                , onSubmit <| Register False
+                -- , onSubmit <| ShowNoRegister  -- TODO: Disable Registration
                 ]
                 [ fieldset
                     [ classes
