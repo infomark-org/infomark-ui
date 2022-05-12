@@ -66,7 +66,7 @@ modelToBody sharedState model =
 type Msg
     = NavigateTo Route
     | Register Bool
-    -- | ShowNoRegister
+      -- | ShowNoRegister
     | SetField Field String
     | ToastyMsg (Toasty.Msg Components.Toasty.Toast)
     | RegistrationResponse (WebData User)
@@ -113,7 +113,6 @@ update sharedState msg model =
         --     , Cmd.none
         --     , ShowToast <| Components.Toasty.Error "Be Patient" "Registration is available soon."
         --     )
-
         RegistrationResponse response ->
             updateHandleRegistrationResponse sharedState model response
 
@@ -231,8 +230,8 @@ view sharedState model =
                     , TC.pa4
                     , TC.black_40
                     ]
-
                 , onSubmit <| Register False
+
                 -- , onSubmit <| ShowNoRegister  -- TODO: Disable Registration
                 ]
                 [ fieldset
@@ -249,7 +248,6 @@ view sharedState model =
                         , Styles.headerStyle
                         ]
                         [ text (t "page-title-registration") ]
-
                     , div [ classes [ TC.w_100 ] ]
                         -- GRID!
                         [ div [ classes [ TC.mt4, TC.cf, TC.ph2_ns ] ]
@@ -360,33 +358,32 @@ view sharedState model =
                                     SetField
                             ]
                         , div [ classes [ TC.mt3, TC.cf, TC.ph2_ns ] ]
-                         [ checkBoxError
-                            { label = t "registration-plagiarism-label"
-                            , description =
-                                div []
-                                    [ text (t "registration-plagiarism-description-first")
-                                    , a
-                                        [ target "_blank"
-                                        , href "https://uni-tuebingen.de/securedl/sdl-eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2NDkwNzkxMTAsImV4cCI6MTY0OTE2OTEwNCwidXNlciI6MCwiZ3JvdXBzIjpbMCwtMV0sImZpbGUiOiJmaWxlYWRtaW5cL1VuaV9UdWViaW5nZW5cL0Zha3VsdGFldGVuXC9JbmZvS29nbmlcL1dTSVwvRG9rdW1lbnRlXC9TdHVkaXVtXC9Eb3dubG9hZFwvQWt0dWVsbGVzX1NlbWVzdGVyXC8yMDE5MDUxNl9VbWdhbmdfbWl0X1BsYWdpYXJpc211cy5wZGYiLCJwYWdlIjo3NDM1MX0.Vpfjlh8DY08gXBbCFQ6PlOEjL3wJuhXjLbfyXRC03_4/20190516_Umgang_mit_Plagiarismus.pdf"
-                                        , Styles.linkGoldStyle
+                            [ checkBoxError
+                                { label = t "registration-plagiarism-label"
+                                , description =
+                                    div []
+                                        [ text (t "registration-plagiarism-description-first")
+                                        , a
+                                            [ target "_blank"
+                                            , href "https://uni-tuebingen.de/fakultaeten/mathematisch-naturwissenschaftliche-fakultaet/fachbereiche/informatik/studium/downloads/informationen-und-formulare/"
+                                            , Styles.linkGoldStyle
+                                            ]
+                                            [ text (t "registration-plagiarism-description-link") ]
+                                        , text (t "registration-plagiarism-description-last")
                                         ]
-                                        [ text (t "registration-plagiarism-description-link") ]
-                                    , text (t "registration-plagiarism-description-last")
-                                    ]
-                            , isChecked = model.isPlagiarismClauseAccepted
-                            , message = TogglePlagiarismClauseAcceptance
-                            }
-                            Plagiarism
-                            model.errors
+                                , isChecked = model.isPlagiarismClauseAccepted
+                                , message = TogglePlagiarismClauseAcceptance
+                                }
+                                Plagiarism
+                                model.errors
                             ]
                         ]
                     , button
                         [ Styles.buttonGreyStyle
                         , classes [ TC.mt4, TC.w_100 ]
                         ]
-                        [ text "Registration possible soon!" ]
-
-                    -- [ text (t "form-register") ]  -- TODO: Enable Registration
+                        -- [ text "Registration possible soon!" ]  -- TODO: Disable Registration
+                        [ text (t "form-register") ]
                     ]
                 , div [ classes [ TC.mt3 ] ]
                     [ button [ onClick <| NavigateTo LoginRoute, Styles.linkGreyStyle ] [ text (t "form-login") ]
@@ -507,7 +504,7 @@ modelValidator =
             , Validate.ifTrue (\model -> isNegative model.studentNumber) ( StudentNumber, "Matrikelnummern sind positiv." )
             ]
         , ifBlank .subject ( Subject, "Bitte gib dein Fach ein." )
-        , Validate.ifFalse .isPlagiarismClauseAccepted (Plagiarism, "Bitte bestätigen sie die Plagiatsregeln")
+        , Validate.ifFalse .isPlagiarismClauseAccepted ( Plagiarism, "Bitte bestätigen sie die Plagiatsregeln" )
         ]
 
 
