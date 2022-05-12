@@ -384,9 +384,8 @@ view sharedState model =
                         [ Styles.buttonGreyStyle
                         , classes [ TC.mt4, TC.w_100 ]
                         ]
-                        [ text "Registration possible soon!" ]
-
-                    -- [ text (t "form-register") ]  -- TODO: Enable Registration
+                        -- [ text "Registration possible soon!" ]
+                        [ text (t "form-register") ]  -- TODO: Enable Registration
                     ]
                 , div [ classes [ TC.mt3 ] ]
                     [ button [ onClick <| NavigateTo LoginRoute, Styles.linkGreyStyle ] [ text (t "form-login") ]

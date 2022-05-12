@@ -72,7 +72,7 @@
 	"form-delete-account": "Account löschen? ⚠ Dieser Vorgang kann nicht rückgängig gemacht werden.",
 	"action-delete": "Löschen",
 	"submission-closed": "Abgabezeit vorbei",
-	"sumbission-was-due": "Abgabe war möglich bis",
+	"submission-was-due": "Abgabe war möglich bis",
 	"submission-due-time": " um ",
 	"submission-time": "Abgabezeit",
 	"max-points": "Maximale Punkte" ,
