@@ -72,7 +72,7 @@
 	"form-delete-account": "Delete your account? ⚠ This cannot be undone and you lose every submission and contribution to all courses.",
 	"action-delete": "Delete",
 	"submission-closed": "Submission Closed",
-	"sumbission-was-due": "The sheet was due",
+	"submission-was-due": "The sheet was due",
 	"submission-due-time": " at ",
 	"submission-time": "Deadline",
 	"max-points": "Maximum Points",
