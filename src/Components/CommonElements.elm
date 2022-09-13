@@ -6,10 +6,10 @@ module Components.CommonElements exposing
     , dateElement
     , dateInputElement
     , datesDisplayContainer
+    , dropdownElement
     , fileUploader
     , iconButton
     , inputElement
-    , dropdownElement
     , inputLabel
     , multiButton
     , nButtonList
@@ -17,6 +17,7 @@ module Components.CommonElements exposing
     , normalPage
     , oneButtonList
     , pageContainer
+    , pointsInputElement
     , progressBarButton
     , r1Column
     , r2Column
@@ -26,6 +27,7 @@ module Components.CommonElements exposing
     , rContainer
     , rRow
     , rRowButton
+    , rRowButton2
     , rRowExtraSpacing
     , rRowHeader
     , rRowHeaderActionButtons
@@ -75,6 +77,7 @@ inputElement inputConfig field errors msg =
     , viewFormErrors field errors
     ]
 
+
 dropdownElement : { label : String, fieldType : String, value : String } -> List (Html msg) -> field -> List ( field, String ) -> (field -> String -> msg) -> List (Html msg)
 dropdownElement inputConfig options field errors msg =
     [ inputLabel inputConfig.label
@@ -87,12 +90,14 @@ dropdownElement inputConfig options field errors msg =
     , viewFormErrors field errors
     ]
 
+
 viewFormErrors : field -> List ( field, String ) -> Html msg
 viewFormErrors field errors =
     errors
         |> List.filter (\( fieldError, _ ) -> fieldError == field)
         |> List.map (\( _, error ) -> li [ classes [ TC.red ] ] [ text error ])
         |> ul [ classes [ TC.list, TC.pl0, TC.center ] ]
+
 
 checkBoxes :
     List
@@ -127,6 +132,7 @@ checkBoxes configs =
                 ]
         )
         configs
+
 
 dateInputElement :
     { label : String
@@ -208,6 +214,33 @@ sliderInputElement inputConfig field errors msg =
         ]
         []
     , h2 [ Styles.labelStyle ] [ text inputConfig.valueLabel ]
+    , viewFormErrors field errors
+    ]
+
+
+pointsInputElement : { label : String, value : Int, min : Int, max : Int, step : Int, valueLabel : String } -> field -> List ( field, String ) -> (field -> String -> msg) -> List (Html msg)
+pointsInputElement inputConfig field errors msg =
+    [ label
+        [ classes [ TC.lh_copy, TC.mb1, TC.pr4 ]
+        , Styles.labelStyle
+        ]
+        [ text inputConfig.label
+        ]
+    , input
+        [ type_ "number"
+        , Styles.lineInputStyle
+        , Html.Attributes.min <| String.fromInt inputConfig.min
+        , Html.Attributes.max <| String.fromInt inputConfig.max
+        , value <| String.fromInt inputConfig.value
+        , step <| String.fromInt inputConfig.step
+
+        -- , class "slider"
+        , onInput <| msg field
+        , classes [ TC.mt3, TC.w_10, TC.bg_black_10, TC.ph2 ]
+        ]
+        []
+
+    -- , h2 [ Styles.labelStyle ] [ text inputConfig.valueLabel ]
     , viewFormErrors field errors
     ]
 
@@ -352,6 +385,13 @@ rRowButton buttonState =
         ]
 
 
+rRowButton2 : PbbState msg -> Html msg
+rRowButton2 buttonState =
+    div [ classes [ TC.cf, TC.ph4_ns, TC.ph3, TC.w_75 ] ]
+        [ progressBarButton buttonState
+        ]
+
+
 rRowLabelButton : String -> String -> msg -> Html msg
 rRowLabelButton label buttonText msg =
     div
@@ -410,6 +450,7 @@ rCollapsable title collapsed collapseMsg ( show, hide ) childs =
                 childs
            )
 
+
 rCollapsablePlain : List (Html msg) -> Bool -> msg -> ( String, String ) -> List (Html msg) -> List (Html msg)
 rCollapsablePlain msgs collapsed collapseMsg ( show, hide ) childs =
     div
@@ -426,20 +467,21 @@ rCollapsablePlain msgs collapsed collapseMsg ( show, hide ) childs =
                 TC.mb0
             ]
         ]
-        ( msgs ++
-        [ button
-            [ Styles.buttonGreyStyle
-            , Styles.pillStyle
-            , onClick collapseMsg
-            ]
-            [ text <|
-                if collapsed then
-                    show
+        (msgs
+            ++ [ button
+                    [ Styles.buttonGreyStyle
+                    , Styles.pillStyle
+                    , onClick collapseMsg
+                    ]
+                    [ text <|
+                        if collapsed then
+                            show
 
-                else
-                    hide
-            ]
-        ] )
+                        else
+                            hide
+                    ]
+               ]
+        )
         :: (if collapsed then
                 [ text "" ]
 
@@ -475,7 +517,7 @@ r3Column child1 child2 child3 =
 
 renderInTextBox : String -> Bool -> Html msg
 renderInTextBox content renderMarkdown =
-    div [ classes [ TC.pa4, TC.bg_black_10, TC.shadow_5, TC.br3, TC.overflow_scroll ] ]
+    div [ classes [ TC.pv3, TC.f5, TC.ph2, TC.w_100, TC.mb3, TC.bg_black_10, TC.br3, TC.overflow_scroll ] ]
         [ if renderMarkdown then
             MD.toHtml [ Styles.textStyle ] content
 
@@ -819,6 +861,7 @@ nButtonList listElements =
             )
             listElements
         )
+
 
 nButtonList2 :
     List
