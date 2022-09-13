@@ -47,6 +47,13 @@ module Api.Endpoint exposing
     , taskRating
     , taskResult
     , taskSubmission
+    , team
+    , teamConfirmed
+    , teamForm
+    , teamJoin
+    , teamLeave
+    , teamUserConfirmed
+    , teamsIncomplete
     , terms
     , unwrap
     , updatePassword
@@ -64,6 +71,7 @@ type Endpoint
 unwrap : Endpoint -> String
 unwrap (Endpoint str) =
     str
+
 
 
 -- "http://laburnum.informatik.uni-tuebingen.de:3000"
@@ -330,9 +338,11 @@ grade : Int -> Int -> Endpoint
 grade courseId gradeId =
     url [ "courses", String.fromInt courseId, "grades", String.fromInt gradeId ] []
 
+
 courseExams : Int -> Endpoint
 courseExams id =
     url [ "courses", String.fromInt id, "exams" ] []
+
 
 exam : Int -> Int -> Endpoint
 exam courseId examId =
@@ -359,3 +369,38 @@ examEnrollments =
         , "enrollments"
         ]
         []
+
+
+team : Int -> Endpoint
+team courseId =
+    url [ "courses", String.fromInt courseId, "team" ] []
+
+
+teamsIncomplete : Int -> Endpoint
+teamsIncomplete courseId =
+    url [ "courses", String.fromInt courseId, "teams" ] []
+
+
+teamConfirmed : Int -> Int -> Endpoint
+teamConfirmed courseId teamId =
+    url [ "courses", String.fromInt courseId, "team", String.fromInt teamId, "confirmed" ] []
+
+
+teamUserConfirmed : Int -> Endpoint
+teamUserConfirmed courseId =
+    url [ "courses", String.fromInt courseId, "team", "userconfirmed" ] []
+
+
+teamJoin : Int -> Endpoint
+teamJoin courseId =
+    url [ "courses", String.fromInt courseId, "team", "join" ] []
+
+
+teamForm : Int -> Endpoint
+teamForm courseId =
+    url [ "courses", String.fromInt courseId, "team", "form" ] []
+
+
+teamLeave : Int -> Endpoint
+teamLeave courseId =
+    url [ "courses", String.fromInt courseId, "team", "leave" ] []

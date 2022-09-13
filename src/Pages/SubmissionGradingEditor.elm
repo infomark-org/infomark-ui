@@ -23,6 +23,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Http
 import I18n
+import Markdown as MD
 import RemoteData exposing (RemoteData(..), WebData)
 import Routing.Helpers exposing (Route(..), reverseRoute)
 import Set exposing (Set)
@@ -32,7 +33,7 @@ import Tachyons exposing (classes, tachyons)
 import Tachyons.Classes as TC
 import Time
 import Utils.Styles as Styles
-import Markdown as MD
+
 
 type Msg
     = NavigateTo Route
@@ -261,11 +262,15 @@ viewTask sharedState model task grade feedback =
     CE.rContainer <|
         [ CE.rRow <|
             CE.r2Column
-                [ UserView.view
-                    sharedState
-                    (Tuple.first <| UserView.initFromUser grade.user)
-                    Nothing
-                ]
+                (grade.users
+                    |> List.map
+                        (\user ->
+                            UserView.view
+                                sharedState
+                                (Tuple.first <| UserView.initFromUser user)
+                                Nothing
+                        )
+                )
                 [ div
                     [ classes
                         [ TC.w_100
@@ -299,7 +304,6 @@ viewTask sharedState model task grade feedback =
             --        Just url ->
             --            if String.isEmpty url then
             --                [ text "" ]
-
             --            else
             --                [ CE.rRowExtraSpacing <|
             --                    CE.r1Column <|
@@ -308,10 +312,8 @@ viewTask sharedState model task grade feedback =
             --                            (case grade.public_execution_state of
             --                                Pending ->
             --                                    "Pending Test"
-
             --                                Running ->
             --                                    "Running Test"
-
             --                                Finished ->
             --                                    grade.public_test_log
             --                            )
@@ -323,16 +325,13 @@ viewTask sharedState model task grade feedback =
             --                            (case grade.private_execution_state of
             --                                Pending ->
             --                                    "Pending Test"
-
             --                                Running ->
             --                                    "Running Test"
-
             --                                Finished ->
             --                                    grade.private_test_log
             --                            )
             --                        ]
             --                ]
-
             --        Nothing ->
             --            [ text "" ]
             --   )
@@ -347,77 +346,82 @@ viewTask sharedState model task grade feedback =
                             (Feedback grade.id)
                             []
                             -- TODO do not ignore errors
-                            SetField)
-                [ CE.inputLabel "Feedback Preview"
-                , CE.renderInTextBox
-                    (Maybe.withDefault "" <| Dict.get grade.id model.feedbackDict)
-                    True
-                ]
+                            SetField
+                        )
+                        [ CE.inputLabel "Feedback Preview"
+                        , CE.renderInTextBox
+                            (Maybe.withDefault "" <| Dict.get grade.id model.feedbackDict)
+                            True
+                        ]
                , CE.rRowExtraSpacing <|
-                    CE.sliderInputElement
-                        { label = "Punkte"
-                        , value = grade.acquired_points
-                        , min = 0
-                        , max = task.max_points
-                        , step = 1
-                        , valueLabel = String.fromInt grade.acquired_points ++ " Punkte"
-                        }
-                        (Points grade.id)
-                        []
-                        -- TODO do not ignore errors
-                        SetField
-               , CE.rRowButton <|
-                    let
-                        stateShownLongEnough =
-                            Maybe.map2
-                                (\up cur ->
-                                    Time.posixToMillis cur - Time.posixToMillis up > 1500
-                                )
-                                (Dict.get grade.id model.gradeDoneTime)
-                                sharedState.currentTime
-                    in
-                    case ( Dict.get grade.id model.getGradeSendResponse, stateShownLongEnough ) of
-                        ( Just (Success _), Just False ) ->
-                            CE.PbbButton <| CE.PbbResult <| CE.PbbSuccess "Erfolgreich benotet"
-
-                        ( Just (Failure _), Just False ) ->
-                            CE.PbbButton <| CE.PbbResult <| CE.PbbFailure "Fehler beim Benoten"
-
-                        ( Just Loading, _ ) ->
-                            CE.PbbSpinner model.spinner
-
-                        ( _, _ ) ->
+                    CE.r2Column
+                        (CE.pointsInputElement
+                            { label = "Punkte (0 - " ++ String.fromInt task.max_points ++ ")"
+                            , value = grade.acquired_points
+                            , min = 0
+                            , max = task.max_points
+                            , step = 1
+                            , valueLabel = String.fromInt grade.acquired_points ++ " Punkte"
+                            }
+                            (Points grade.id)
+                            []
+                            -- TODO do not ignore errors
+                            SetField
+                        )
+                        [ CE.rRowButton2 <|
                             let
-                                submissionAvailable =
-                                    (grade.file_url /= Just "")
-                                        && (grade.file_url /= Nothing)
-
-                                testFinished =
-                                    grade.private_execution_state
-                                        == Finished
-                                        && grade.public_execution_state
-                                        == Finished
-
-                                testDoneButtonState =
-                                    if String.isEmpty feedback then
-                                        CE.PbbDisabled "You need to write Feedback"
-
-                                    else if
-                                        not testFinished
-                                            && submissionAvailable
-                                    then
-                                        CE.PbbActive "Benoten" -- (Achtung: Test nicht vollständig)"
-                                            (SendGrade grade.id)
-
-                                    else
-                                        CE.PbbActive "Benoten" (SendGrade grade.id)
+                                stateShownLongEnough =
+                                    Maybe.map2
+                                        (\up cur ->
+                                            Time.posixToMillis cur - Time.posixToMillis up > 1500
+                                        )
+                                        (Dict.get grade.id model.gradeDoneTime)
+                                        sharedState.currentTime
                             in
-                            CE.PbbButton <|
-                                if not submissionAvailable then
-                                    testDoneButtonState
+                            case ( Dict.get grade.id model.getGradeSendResponse, stateShownLongEnough ) of
+                                ( Just (Success _), Just False ) ->
+                                    CE.PbbButton <| CE.PbbResult <| CE.PbbSuccess "Erfolgreich benotet"
 
-                                else
-                                    testDoneButtonState
+                                ( Just (Failure _), Just False ) ->
+                                    CE.PbbButton <| CE.PbbResult <| CE.PbbFailure "Fehler beim Benoten"
+
+                                ( Just Loading, _ ) ->
+                                    CE.PbbSpinner model.spinner
+
+                                ( _, _ ) ->
+                                    let
+                                        submissionAvailable =
+                                            (grade.file_url /= Just "")
+                                                && (grade.file_url /= Nothing)
+
+                                        testFinished =
+                                            grade.private_execution_state
+                                                == Finished
+                                                && grade.public_execution_state
+                                                == Finished
+
+                                        testDoneButtonState =
+                                            if String.isEmpty feedback then
+                                                CE.PbbDisabled "You need to write Feedback"
+
+                                            else if
+                                                not testFinished
+                                                    && submissionAvailable
+                                            then
+                                                CE.PbbActive "Benoten"
+                                                    -- (Achtung: Test nicht vollständig)"
+                                                    (SendGrade grade.id)
+
+                                            else
+                                                CE.PbbActive "Benoten" (SendGrade grade.id)
+                                    in
+                                    CE.PbbButton <|
+                                        if not submissionAvailable then
+                                            testDoneButtonState
+
+                                        else
+                                            testDoneButtonState
+                        ]
                ]
 
 
@@ -476,8 +480,10 @@ setField model field value =
 compareGradeEntries : Grade -> Grade -> Order
 compareGradeEntries fgA fgB =
     let
-        joinedName =
-            \fg -> fg.user.lastname ++ " " ++ fg.user.firstname
+        joinedName fg =
+            fg.users
+                |> List.map
+                    (\fga -> fga.lastname ++ " " ++ fga.firstname)
     in
     case ( String.isEmpty fgA.feedback, String.isEmpty fgB.feedback ) of
         ( True, False ) ->

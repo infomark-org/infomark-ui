@@ -22,7 +22,7 @@ type alias Grade =
     , feedback : String
     , tutor_id : Int
     , submission_id : Int
-    , user : User
+    , users : List User
     , file_url : Maybe String
     }
 
@@ -42,7 +42,7 @@ decoder =
         |> required "feedback" Decode.string
         |> required "tutor_id" Decode.int
         |> required "submission_id" Decode.int
-        |> required "user" User.decoder
+        |> required "users" (Decode.list User.decoder)
         |> optional "file_url" (Decode.nullable Decode.string) Nothing
 
 
@@ -61,7 +61,7 @@ encoder model =
         , ( "feedback", Encode.string model.feedback )
         , ( "tutor_id", Encode.int model.tutor_id )
         , ( "submission_id", Encode.int model.submission_id )
-        , ( "user", User.encoder model.user )
+        , ( "users", (Encode.list User.encoder) model.users )
         , ( "file_url", maybe Encode.string model.file_url )
         ]
 

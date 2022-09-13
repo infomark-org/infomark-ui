@@ -8,12 +8,13 @@ module Api.Helper exposing
     , postExpectNothing
     , postFile
     , put
+    , put2
     , putExpectNothing
     )
 
 import File exposing (File)
-import Http
-import Json.Decode exposing (Decoder)
+import Http exposing (..)
+import Json.Decode exposing (Decoder, decodeString, errorToString)
 import RemoteData exposing (RemoteData(..), WebData)
 
 
@@ -116,6 +117,46 @@ put url body msg decoder =
         , timeout = Nothing
         , tracker = Nothing
         }
+
+
+put2 : String -> Http.Body -> (WebData a -> msg) -> Decoder a -> Cmd msg
+put2 url body msg decoder =
+    Http.request
+        { method = "PUT"
+        , headers = []
+        , url = url
+        , body = body
+        , expect = expectJson2 (RemoteData.fromResult >> msg) decoder
+        , timeout = Nothing
+        , tracker = Nothing
+        }
+
+
+expectJson2 : (Result Http.Error a -> msg) -> Decoder a -> Expect msg
+expectJson2 toMsg decoder =
+    expectStringResponse toMsg <|
+        \response ->
+            case response of
+                Http.BadUrl_ url ->
+                    Err (Http.BadUrl url)
+
+                Http.Timeout_ ->
+                    Err Http.Timeout
+
+                Http.NetworkError_ ->
+                    Err Http.NetworkError
+
+                Http.BadStatus_ metadata body ->
+                    -- Err (Http.BadStatus metadata.statusCode)
+                    Err (Http.BadBody body)
+
+                Http.GoodStatus_ metadata body ->
+                    case decodeString decoder body of
+                        Ok value ->
+                            Ok value
+
+                        Err err ->
+                            Err (Http.BadBody (errorToString err))
 
 
 putExpectNothing : String -> Http.Body -> (WebData () -> msg) -> Cmd msg

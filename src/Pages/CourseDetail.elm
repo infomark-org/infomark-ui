@@ -31,9 +31,10 @@
 module Pages.CourseDetail exposing (Model, Msg(..), init, update, view)
 
 import Api.Data.AccountEnrollment as AccountEnrollment exposing (AccountEnrollment)
-import Api.Data.Exam exposing (Exam, ExamEnrollment, ExamEnrollments, Exams)
+import Api.Data.Bool as Bool exposing (BoolResponse)
 import Api.Data.Course exposing (Course)
 import Api.Data.CourseRole as CourseRole exposing (CourseRole(..))
+import Api.Data.Exam exposing (Exam, ExamEnrollment, ExamEnrollments, Exams)
 import Api.Data.Group as Group exposing (Group)
 import Api.Data.GroupBid as GroupBid exposing (GroupBid)
 import Api.Data.GroupEnrollmentChange as GroupEnrollmentChange exposing (GroupEnrollmentChange)
@@ -41,6 +42,7 @@ import Api.Data.GroupSummary as GroupSummary exposing (GroupSummary)
 import Api.Data.Material as Material exposing (Material, MaterialType(..))
 import Api.Data.PointOverview as PointOverview exposing (PointOverview)
 import Api.Data.Sheet as Sheet exposing (Sheet)
+import Api.Data.Team as Team exposing (Team)
 import Api.Data.User as User exposing (User)
 import Api.Data.UserEnrollment as UserEnrollment exposing (UserEnrollment)
 import Api.Endpoint exposing (sheetFile, unwrap)
@@ -49,16 +51,17 @@ import Api.Request.Courses as CoursesRequests
 import Api.Request.Exam as ExamRequests
 import Api.Request.Groups as GroupsRequests
 import Api.Request.Material as MaterialRequests
+import Api.Request.Team as TeamRequests exposing (teamsIncompleteGet)
 import Browser.Navigation exposing (pushUrl)
 import Components.CommonElements
     exposing
         ( checkBoxes
         , dateElement
-        , datesDisplayContainer
         , dateInputElement
+        , datesDisplayContainer
+        , iconButton
         , inputElement
         , multiButton
-        , iconButton
         , nButtonList
         , nButtonList2
         , normalPage
@@ -88,7 +91,9 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Http
 import I18n
+import Json.Decode as Json
 import Markdown as MD
+import Maybe.Extra as Maybe
 import RemoteData exposing (RemoteData(..), WebData)
 import Routing.Helpers exposing (Route(..), reverseRoute)
 import SharedState exposing (SharedState, SharedStateUpdate(..))
@@ -142,6 +147,16 @@ type Msg
     | ExamDeleteResponse Int (WebData ())
     | ExamResponse
     | CreateExam
+    | TeamGetResponse (WebData Team)
+    | TeamsIncompleteGet (WebData (List Team))
+    | TeamConfirmed (WebData BoolResponse)
+    | TeamUserConfirmed (WebData BoolResponse)
+    | TeamForm Int
+    | TeamJoin Int
+    | TeamJoinResponse (WebData Team)
+    | TeamConfirm
+    | TeamLeave
+    | TeamLeaveResponse (WebData Team)
 
 
 type alias Model =
@@ -170,6 +185,10 @@ type alias Model =
     , searchEnrollmentInput : String
     , searchGroupInput : String
     , pointOverviewResponse : WebData (List PointOverview)
+    , ownTeamRequest : WebData Team
+    , teamConfirmed : WebData BoolResponse
+    , teamUserConfirmed : WebData BoolResponse
+    , incompleteTeams : WebData (List Team)
     }
 
 
@@ -212,6 +231,10 @@ init id =
       , searchEnrollmentInput = ""
       , searchGroupInput = ""
       , pointOverviewResponse = Loading
+      , ownTeamRequest = NotAsked
+      , teamConfirmed = NotAsked
+      , teamUserConfirmed = NotAsked
+      , incompleteTeams = NotAsked
       }
     , Cmd.batch
         [ AccountRequests.accountEnrollmentGet CourseRoleResponse
@@ -256,10 +279,12 @@ determineInitialRoleRequests model role =
             ( { model
                 | enrollmentsRequest = Loading
                 , ownGroupsRequest = Loading
+                , ownTeamRequest = Loading
               }
             , Cmd.batch
                 [ CoursesRequests.coursesEnrollmentGetTeam model.courseId EnrollmentsResponse
                 , CoursesRequests.courseOwnGroupGet model.courseId OwnGroupsResponse
+                , TeamRequests.teamGet model.courseId TeamGetResponse
                 ]
             )
 
@@ -332,10 +357,98 @@ update sharedState msg model =
             ( model, Cmd.none, NoUpdate )
 
         OwnGroupsResponse response ->
-            updateGroupDisplay sharedState { model | ownGroupsRequest = response }
+            let
+                ( model1, cmd, upd ) =
+                    updateGroupDisplay sharedState { model | ownGroupsRequest = response }
+
+                ( model2, cmd1, upd1 ) =
+                    updateStudentTeam sharedState model1
+            in
+            ( model2, Cmd.batch [ cmd, cmd1 ], upd )
 
         GroupsDisplayResponse response ->
             updateGroupDisplay sharedState { model | groupsRequest = response }
+
+        TeamGetResponse response ->
+            case response of
+                Success _ ->
+                    updateStudentTeam sharedState { model | ownTeamRequest = response }
+
+                Failure err ->
+                    let
+                        errorMsg =
+                            case err of
+                                Http.BadUrl url ->
+                                    "BadUrl: " ++ url
+
+                                Http.Timeout ->
+                                    "Timeout"
+
+                                Http.NetworkError ->
+                                    "Networerror"
+
+                                Http.BadStatus status ->
+                                    "BadStatus: " ++ String.fromInt status
+
+                                Http.BadBody dbg ->
+                                    case Json.decodeString (Json.field "error" Json.string) dbg of
+                                        Ok s ->
+                                            s
+
+                                        _ ->
+                                            "BadBody"
+                    in
+                    ( model
+                    , Cmd.none
+                    , ShowToast <| Components.Toasty.Error "Error" errorMsg
+                    )
+
+                _ ->
+                    ( model
+                    , Cmd.none
+                    , ShowToast <| Components.Toasty.Error "Error" "TeamGet response failed somehow"
+                    )
+
+        TeamsIncompleteGet response ->
+            updateStudentTeam sharedState { model | incompleteTeams = response }
+
+        TeamConfirmed response ->
+            updateStudentTeam sharedState { model | teamConfirmed = response }
+
+        TeamUserConfirmed response ->
+            updateStudentTeam sharedState { model | teamUserConfirmed = response }
+
+        TeamForm user_id ->
+            ( { model | ownTeamRequest = Loading }, TeamRequests.teamFormPost model.courseId user_id TeamJoinResponse, NoUpdate )
+
+        TeamJoin team_id ->
+            ( { model | incompleteTeams = Loading }
+            , Cmd.batch [ TeamRequests.teamJoinPut model.courseId team_id TeamJoinResponse ]
+            , NoUpdate
+            )
+
+        TeamJoinResponse response ->
+            let
+                ( model1, cmd, upd ) =
+                    update sharedState (TeamGetResponse response) model
+            in
+            ( model1, Cmd.batch [ cmd, TeamRequests.teamsIncompleteGet model.courseId TeamsIncompleteGet ], upd )
+
+        TeamConfirm ->
+            ( model, TeamRequests.teamUserConfirmedPut model.courseId TeamUserConfirmed, NoUpdate )
+
+        TeamLeave ->
+            ( model
+            , TeamRequests.teamLeavePut model.courseId TeamLeaveResponse
+            , NoUpdate
+            )
+
+        TeamLeaveResponse response ->
+            let
+                ( model1, cmd, upd ) =
+                    update sharedState (TeamGetResponse response) model
+            in
+            ( model1, Cmd.batch [ cmd, TeamRequests.teamsIncompleteGet model.courseId TeamsIncompleteGet ], upd )
 
         GroupsSummaryResponse groupId response ->
             case response of
@@ -983,7 +1096,6 @@ update sharedState msg model =
             , NoUpdate
             )
 
-
         _ ->
             ( model, Cmd.none, NoUpdate )
 
@@ -1117,15 +1229,328 @@ view sharedState model =
                 , viewExams sharedState model
                 , normalPage <|
                     [ viewSheets sharedState model
+
                     --, viewMaterials sharedState model Slide
                     --, viewMaterials sharedState model Supplementary
                     , viewDetermineGroupDisplay role sharedState model
                     , viewDetermineTeamOrSearch role sharedState model
+                    , viewStudentTeam role sharedState model
                     ]
                 ]
 
         ( _, _ ) ->
             div [] []
+
+
+updateStudentTeam : SharedState -> Model -> ( Model, Cmd Msg, SharedStateUpdate )
+updateStudentTeam sharedState model =
+    let
+        hasGroup =
+            case model.ownGroupsRequest of
+                RemoteData.Success _ ->
+                    True
+
+                _ ->
+                    False
+
+        ( hasTeam, teamID ) =
+            case model.ownTeamRequest of
+                RemoteData.Success team ->
+                    ( Maybe.isJust team.id, team.id )
+
+                _ ->
+                    ( False, Nothing )
+    in
+    case ( hasGroup, model.ownTeamRequest ) of
+        -- User has been assigned a tutor, and has a team
+        ( True, RemoteData.Success _ ) ->
+            case ( model.teamConfirmed, model.teamUserConfirmed ) of
+                ( NotAsked, NotAsked ) ->
+                    case ( hasTeam, model.incompleteTeams ) of
+                        ( False, NotAsked ) ->
+                            ( { model | incompleteTeams = Loading }, TeamRequests.teamsIncompleteGet model.courseId TeamsIncompleteGet, NoUpdate )
+
+                        ( True, _ ) ->
+                            ( { model | teamUserConfirmed = Loading, teamConfirmed = Loading }
+                            , Cmd.batch
+                                [ TeamRequests.teamUserConfirmedGet model.courseId TeamUserConfirmed
+                                , TeamRequests.teamConfirmedGet model.courseId (Maybe.withDefault 0 teamID) TeamConfirmed
+                                ]
+                            , NoUpdate
+                            )
+
+                        _ ->
+                            ( model, Cmd.none, NoUpdate )
+
+                ( RemoteData.Success teamConfirmed, _ ) ->
+                    if teamConfirmed.bool then
+                        ( model, Cmd.none, NoUpdate )
+
+                    else
+                        case model.incompleteTeams of
+                            NotAsked ->
+                                ( { model | incompleteTeams = Loading }, TeamRequests.teamsIncompleteGet model.courseId TeamsIncompleteGet, NoUpdate )
+
+                            _ ->
+                                ( model, Cmd.none, NoUpdate )
+
+                _ ->
+                    ( model, Cmd.none, NoUpdate )
+
+        -- User has been assigned a tutor, but does not have a team yet
+        ( True, NotAsked ) ->
+            ( { model | incompleteTeams = Loading }, TeamRequests.teamsIncompleteGet model.courseId TeamsIncompleteGet, NoUpdate )
+
+        -- User has not been assigned a tutor
+        _ ->
+            ( model, Cmd.none, NoUpdate )
+
+
+
+-- if hasGroup then
+--     -- Check if student has a group
+--     if hasTeam then
+--         ( model, TeamRequests.teamsIncompleteGet model.courseId TeamsIncompleteGet, NoUpdate )
+--     else
+--       ( model, Cmd.none, NoUpdate )
+-- else
+--     ( model, Cmd.none, NoUpdate )
+
+
+viewStudentTeam : CourseRole -> SharedState -> Model -> Html Msg
+viewStudentTeam role sharedState model =
+    let
+        hasGroup =
+            case model.ownGroupsRequest of
+                RemoteData.Success _ ->
+                    True
+
+                _ ->
+                    False
+
+        hasTeam =
+            case model.ownTeamRequest of
+                RemoteData.Success _ ->
+                    True
+
+                _ ->
+                    False
+
+        teamConfirmed =
+            case model.teamConfirmed of
+                RemoteData.Success confirmed ->
+                    confirmed.bool
+
+                _ ->
+                    False
+
+        teamUserConfirmed =
+            case model.teamUserConfirmed of
+                RemoteData.Success confirmed ->
+                    confirmed.bool
+
+                _ ->
+                    False
+    in
+    case role of
+        Student ->
+            rContainer <|
+                [ rRowHeader "Assignment Team"
+                , div [ classes [ TC.flex, TC.flex_row, TC.flex_wrap, TC.justify_start ] ]
+                    [ rContainer <|
+                        if not hasGroup then
+                            []
+
+                        else
+                            case model.ownTeamRequest of
+                                RemoteData.Success team ->
+                                    (if Maybe.isJust team.id && not teamConfirmed then
+                                        [ rRow [ h3 [ Styles.listHeadingStyle, classes [ TC.red, TC.mt0 ] ] [ text "Your team is not confirmed yet. " ] ] ]
+
+                                     else
+                                        []
+                                    )
+                                        ++ (if Maybe.isNothing team.id then
+                                                [ rRow [ h3 [ Styles.listHeadingStyle, classes [ TC.red, TC.mt0 ] ] [ text "You are not in a team." ] ] ]
+
+                                            else
+                                                []
+                                           )
+                                        ++ (if not teamUserConfirmed then
+                                                case team.id of
+                                                    Just id ->
+                                                        [ div [ classes [ TC.flex, TC.flex_row, TC.flex_wrap, TC.justify_start ] ] <|
+                                                            [ rRow
+                                                                [ div
+                                                                    [ classes [ TC.w_100, TC.flex, TC.flex_row, TC.justify_between, TC.items_center ] ]
+                                                                    -- [ TC.flex_auto, TC.pl2 ] ]
+                                                                    [ h1 [ Styles.listHeadingStyle, classes [ TC.mv0, TC.ph2 ] ]
+                                                                        [ text "Confirm Now" ]
+                                                                    , iconButton "check_circle" TeamConfirm
+                                                                    ]
+                                                                ]
+                                                            ]
+                                                        ]
+
+                                                    Nothing ->
+                                                        []
+
+                                            else
+                                                []
+                                           )
+                                        ++ (if not teamConfirmed then
+                                                case team.id of
+                                                    Just id ->
+                                                        [ div [ classes [ TC.flex, TC.flex_row, TC.flex_wrap, TC.justify_start ] ] <|
+                                                            [ rRow
+                                                                [ div
+                                                                    [ classes [ TC.w_100, TC.flex, TC.flex_row, TC.justify_between, TC.items_center ] ]
+                                                                    -- [ TC.flex_auto, TC.pl2 ] ]
+                                                                    [ h1 [ Styles.listHeadingStyle, classes [ TC.mv0, TC.ph2 ] ]
+                                                                        [ text "Leave Team" ]
+                                                                    , iconButton "logout" TeamLeave
+                                                                    ]
+                                                                ]
+                                                            ]
+                                                        ]
+
+                                                    Nothing ->
+                                                        []
+
+                                            else
+                                                []
+                                           )
+                                        ++ viewStudentTeamCurrent sharedState model team
+                                        ++ viewStudentTeamJoinable sharedState model team teamConfirmed
+
+                                _ ->
+                                    [ text "Loading" ]
+                    ]
+                ]
+
+        _ ->
+            text ""
+
+
+viewStudentTeamCurrent : SharedState -> Model -> Team -> List (Html msg)
+viewStudentTeamCurrent sharedState model team =
+    case team.id of
+        Just id ->
+            [ div [ classes [ TC.flex, TC.flex_row, TC.flex_wrap, TC.justify_start ] ] <|
+                List.map2
+                    (\name email ->
+                        div
+                            [ classes
+                                [ TC.flex
+                                , TC.items_center
+                                , TC.pa3
+
+                                -- , TC.ph0_l
+                                ]
+                            ]
+                            [ img
+                                [ src "images/defaultAvatar.png"
+                                , classes
+                                    [ TC.br_100
+                                    , TC.ba
+                                    , TC.b__black_10
+
+                                    --, TC.shadow_5_ns
+                                    , TC.h3_ns
+                                    , TC.h2
+                                    , TC.w3_ns
+                                    , TC.w2
+                                    ]
+                                ]
+                                []
+                            , div [ classes [ TC.flex_auto, TC.pl2 ] ]
+                                [ h1 [ Styles.listHeadingStyle, classes [ TC.mv0, TC.ph2 ] ]
+                                    [ text name ]
+                                , a
+                                    [ Styles.linkGreyStyle
+                                    , classes [ TC.link, TC.mv0, TC.tl, TC.mh0, TC.sans_serif ]
+                                    , href ("mailto:" ++ email)
+                                    ]
+                                    [ text email ]
+                                ]
+                            ]
+                    )
+                    team.members
+                    (if team.member_mails == [] then
+                        List.repeat (List.length team.members) ""
+
+                     else
+                        team.member_mails
+                    )
+            ]
+
+        Nothing ->
+            []
+
+
+viewStudentTeamJoinable : SharedState -> Model -> Team -> Bool -> List (Html Msg)
+viewStudentTeamJoinable sharedState model team teamConfirmed =
+    if Maybe.isNothing team.id || not teamConfirmed then
+        case model.incompleteTeams of
+            RemoteData.Success teams ->
+                [ rRow [ h3 [ Styles.listHeadingStyle, classes [ TC.mt0 ] ] [ text "Students without a team partner" ] ]
+                , div [ classes [ TC.flex, TC.flex_row, TC.flex_wrap, TC.justify_start ] ] <|
+                    List.concatMap
+                        (\t ->
+                            List.map
+                                (\name ->
+                                    rRow
+                                        [ div
+                                            [ classes
+                                                [ TC.flex
+                                                , TC.items_center
+                                                , TC.pa3
+
+                                                -- , TC.ph0_l
+                                                ]
+                                            ]
+                                            [ img
+                                                [ src "images/defaultAvatar.png"
+                                                , classes
+                                                    [ TC.br_100
+                                                    , TC.ba
+                                                    , TC.b__black_10
+
+                                                    --, TC.shadow_5_ns
+                                                    , TC.h3_ns
+                                                    , TC.h2
+                                                    , TC.w3_ns
+                                                    , TC.w2
+                                                    ]
+                                                ]
+                                                []
+                                            , div
+                                                [ classes [ TC.w_100, TC.flex, TC.flex_row, TC.justify_between, TC.items_center ] ]
+                                                [ h1 [ Styles.listHeadingStyle, classes [ TC.mv0, TC.ph2 ] ]
+                                                    [ text name ]
+                                                , iconButton "add_circle"
+                                                    (case t.id of
+                                                        Nothing ->
+                                                            TeamForm t.user_id
+
+                                                        Just id ->
+                                                            TeamJoin id
+                                                    )
+                                                ]
+                                            ]
+                                        ]
+                                )
+                                t.members
+                        )
+                        teams
+                ]
+
+            _ ->
+                []
+
+    else
+        []
+
 
 viewExams : SharedState -> Model -> Html Msg
 viewExams sharedState model =
@@ -1243,6 +1668,7 @@ viewExamEditor sharedState model exam =
         ( ( _, _ ), ( _, _ ) ) ->
             text "ERROR on date/time pickers"
 
+
 datePickerSettings : SharedState -> DatePicker.Settings
 datePickerSettings sharedState =
     let
@@ -1323,6 +1749,7 @@ viewExamDetails sharedState exam =
         [ span [ classes [ TC.b ] ]
             [ text exam.name
             ]
+
         --, text " am "
         --, span
         --    [ classes [ TC.b ] ]
@@ -1398,10 +1825,11 @@ viewExamEnrollmentForm sharedState model =
                         examInfo =
                             { label =
                                 e.name
-                                    --++ " "
-                                    --++ DF.shortDateFormatter sharedState e.exam_time
-                                    --++ " "
-                                    --++ DF.shortTimeFormatString sharedState e.exam_time
+
+                            --++ " "
+                            --++ DF.shortDateFormatter sharedState e.exam_time
+                            --++ " "
+                            --++ DF.shortTimeFormatString sharedState e.exam_time
                             , description = e.description
                             , isChecked = Dict.member id model.examEnrollments
                             , message = ToggleEnrollToExam id
@@ -1472,6 +1900,7 @@ filterExam exams enrollments =
     List.map (\( use, id, exam ) -> ( id, exam ))
         (List.filter (\( use, id, exam ) -> use) examSuccess)
 
+
 viewCourseInfo : SharedState -> Model -> Html Msg
 viewCourseInfo sharedState model =
     let
@@ -1486,27 +1915,28 @@ viewCourseInfo sharedState model =
                         , List.sum <| List.map (\p -> p.max_points) points
                         , List.sum <| List.map (\p -> p.achievable_points) points
                         )
-                            |> (\ (fst, snd, thrd) ->
+                            |> (\( fst, snd, thrd ) ->
                                     { acquired_points = fst
                                     , max_points = snd
                                     , achievable_points = thrd
-                                    , color = let
-                                                acquiredPerc =
-                                                    round <|
-                                                        (toFloat <| fst)
-                                                            / (toFloat <| snd)
-                                                            * 100
-                                              in
-                                              if acquiredPerc < course.required_percentage then
-                                                TC.red
+                                    , color =
+                                        let
+                                            acquiredPerc =
+                                                round <|
+                                                    (toFloat <| fst)
+                                                        / (toFloat <| snd)
+                                                        * 100
+                                        in
+                                        if acquiredPerc < course.required_percentage then
+                                            TC.red
 
-                                              else if acquiredPerc < (course.required_percentage + 5) then
-                                                TC.gold
+                                        else if acquiredPerc < (course.required_percentage + 5) then
+                                            TC.gold
 
-                                              else
-                                                TC.dark_green
+                                        else
+                                            TC.dark_green
                                     }
-                                )
+                               )
                             |> Just
 
                 ( _, _ ) ->
@@ -1713,15 +2143,16 @@ viewSheets sharedState model =
                                 , { acquired_points = p.acquired_points
                                   , max_points = p.max_points
                                   , achievable_points = p.achievable_points
-                                  , color = if acquiredPerc < course.required_percentage then
-                                                classes (TC.red :: baseStyle)
+                                  , color =
+                                        if acquiredPerc < course.required_percentage then
+                                            classes (TC.red :: baseStyle)
 
-                                            else if acquiredPerc < (course.required_percentage + 5) then
-                                                classes (TC.gold :: baseStyle)
+                                        else if acquiredPerc < (course.required_percentage + 5) then
+                                            classes (TC.gold :: baseStyle)
 
-                                            else
-                                                classes (TC.dark_green :: baseStyle)
-                                   }
+                                        else
+                                            classes (TC.dark_green :: baseStyle)
+                                  }
                                 )
                             )
                         |> Dict.fromList
@@ -1753,19 +2184,20 @@ viewSheets sharedState model =
                                                     ++ " (maximal erreichbar: "
                                                     ++ (String.fromInt <| mp.max_points)
                                                     ++ ")"
-                                                , mp.color --labelStyle
+                                                , mp.color
+                                                  --labelStyle
                                                 )
 
                                             Nothing ->
                                                 ( sheet.name, defaultStyle )
                                 in
                                 { --button1_icon = "get_app"
-                                -- , button1_msg =
-                                --     Download <|
-                                --         unwrap <|
-                                --             sheetFile model.courseId
-                                --                 sheet.id
-                                right_buttons =
+                                  -- , button1_msg =
+                                  --     Download <|
+                                  --         unwrap <|
+                                  --             sheetFile model.courseId
+                                  --                 sheet.id
+                                  right_buttons =
                                     (if model.courseRole == Just Admin then
                                         [ { button_icon = "edit"
                                           , button_msg =
@@ -1952,6 +2384,7 @@ setField model field value =
 
         GroupSearchField ->
             { model | searchGroupInput = value }
+
         ExamName examId ->
             let
                 exams =
