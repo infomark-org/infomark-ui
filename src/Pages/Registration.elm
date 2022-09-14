@@ -4,7 +4,7 @@ import Api.Data.User exposing (User)
 import Api.Data.UserAccount exposing (UserAccount)
 import Api.Request.Account exposing (accountPost)
 import Browser.Navigation exposing (pushUrl)
-import Components.CommonElements exposing (dropdownElement, inputElement)
+import Components.CommonElements exposing (checkBoxError, dropdownElement, inputElement)
 import Components.Dialog as Dialog
 import Components.Toasty
 import Html exposing (..)
@@ -38,6 +38,7 @@ type alias Model =
     , errors : List Error
     , toasties : Toasty.Stack Components.Toasty.Toast
     , noUniversityEmailDialogState : Dialog.State
+    , isPlagiarismClauseAccepted : Bool
     }
 
 
@@ -69,6 +70,7 @@ type Msg
     | ToastyMsg (Toasty.Msg Components.Toasty.Toast)
     | RegistrationResponse (WebData User)
     | NoUniversityMailWarningVisible Bool
+    | TogglePlagiarismClauseAcceptance
     | NoOp
 
 
@@ -87,6 +89,7 @@ init =
       , errors = []
       , toasties = Toasty.initialState
       , noUniversityEmailDialogState = False
+      , isPlagiarismClauseAccepted = False
       }
     , Cmd.none
     )
@@ -116,6 +119,12 @@ update sharedState msg model =
 
         NoUniversityMailWarningVisible state ->
             ( { model | noUniversityEmailDialogState = state }, Cmd.none, NoUpdate )
+
+        TogglePlagiarismClauseAcceptance ->
+            ( { model | isPlagiarismClauseAccepted = not model.isPlagiarismClauseAccepted }
+            , Cmd.none
+            , NoUpdate
+            )
 
         NoOp ->
             ( model, Cmd.none, NoUpdate )
@@ -443,6 +452,26 @@ view sharedState model =
                                     SetField
                             ]
                         ]
+                    , div [ classes [ TC.mt3, TC.cf, TC.ph2_ns ] ]
+                        [ checkBoxError
+                            { label = t "registration-plagiarism-label"
+                            , description =
+                                div []
+                                    [ text (t "registration-plagiarism-description-first")
+                                    , a
+                                        [ target "_blank"
+                                        , href "https://uni-tuebingen.de/fakultaeten/mathematisch-naturwissenschaftliche-fakultaet/fachbereiche/informatik/studium/downloads/informationen-und-formulare/"
+                                        , Styles.linkGoldStyle
+                                        ]
+                                        [ text (t "registration-plagiarism-description-link") ]
+                                    , text (t "registration-plagiarism-description-last")
+                                    ]
+                            , isChecked = model.isPlagiarismClauseAccepted
+                            , message = TogglePlagiarismClauseAcceptance
+                            }
+                            Plagiarism
+                            model.errors
+                        ]
                     , div [ classes [ TC.tl, TC.bn, TC.f6 ] ]
                         [ div []
                             [ text "* Studiengang oder Abschluss nicht gefunden? "
@@ -518,6 +547,7 @@ type Field
     | Semester
     | Subject
     | Degree
+    | Plagiarism
 
 
 setField : Model -> Field -> String -> Model
@@ -549,6 +579,9 @@ setField model field value =
 
         Degree ->
             { model | degree = value }
+
+        Plagiarism ->
+            model
 
 
 type alias Error =
@@ -583,6 +616,7 @@ modelValidator =
             ]
         , ifBlank .degree ( Degree, "Bitte gib deinen angestrebten Abschluss ein." )
         , ifBlank .subject ( Subject, "Bitte gib dein Fach ein." )
+        , Validate.ifFalse .isPlagiarismClauseAccepted ( Plagiarism, "Bitte bestätigen sie die Plagiatsregeln" )
         ]
 
 

@@ -2,6 +2,8 @@ module Components.CommonElements exposing
     ( PbbButtonState(..)
     , PbbResultState(..)
     , PbbState(..)
+    , checkBox
+    , checkBoxError
     , checkBoxes
     , dateElement
     , dateInputElement
@@ -97,6 +99,69 @@ viewFormErrors field errors =
         |> List.filter (\( fieldError, _ ) -> fieldError == field)
         |> List.map (\( _, error ) -> li [ classes [ TC.red ] ] [ text error ])
         |> ul [ classes [ TC.list, TC.pl0, TC.center ] ]
+
+
+checkBoxError :
+    { label : String
+    , description : Html msg
+    , isChecked : Bool
+    , message : msg
+    }
+    -> field
+    -> List ( field, String )
+    -> Html msg
+checkBoxError config field errors =
+    div
+        [ classes
+            [ TC.ma0
+            , TC.pv2
+            , TC.ph0
+            , TC.w_100
+            , TC.f5
+            , TC.black_80
+            ]
+        ]
+        [ input
+            [ type_ "checkbox"
+            , onClick config.message
+            , checked config.isChecked
+            , classes [ TC.ma1 ]
+            ]
+            []
+        , span [ classes [ TC.b ] ] [ text config.label ]
+        , viewFormErrors field errors
+        , rRow [ config.description ]
+        ]
+
+
+checkBox :
+    { label : String
+    , description : Html msg
+    , isChecked : Bool
+    , message : msg
+    }
+    -> Html msg
+checkBox config =
+    div
+        [ classes
+            [ TC.ma0
+            , TC.pv2
+            , TC.ph0
+            , TC.w_100
+            , TC.f5
+            , TC.black_80
+            ]
+        ]
+        [ input
+            [ type_ "checkbox"
+            , onClick config.message
+            , checked config.isChecked
+            , classes [ TC.ma1 ]
+            ]
+            []
+        , span [ classes [ TC.b ] ] [ text config.label ]
+        , rRow [ config.description ]
+        ]
 
 
 checkBoxes :
