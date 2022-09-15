@@ -215,7 +215,7 @@ update sharedState msg model =
             )
 
         Pick fileType ->
-            ( model, Select.files [ "application/zip" ] (GotFiles fileType), NoUpdate )
+            ( model, Select.files [ ".rkt" ] (GotFiles fileType), NoUpdate )
 
         DragEnter fileType ->
             ( updateHover fileType True model, Cmd.none, NoUpdate )
@@ -364,36 +364,36 @@ view sharedState model =
                     Name
                     model.errors
                     SetField
-             , rRow <|
-                 r2Column
-                     [ inputLabel "Public Tests"
-                     , fileUploader (chooseHover Public model) (chooseFile Public model) (DragEnter Public) (DragLeave Public) (Pick Public) (GotFiles Public)
-                     ]
-                     [ inputLabel "Private Tests"
-                     , fileUploader (chooseHover Private model) (chooseFile Private model) (DragEnter Private) (DragLeave Private) (Pick Private) (GotFiles Private)
-                     ]
-             , rRowExtraSpacing <|
-                 r2Column
-                     (inputElement
-                         { label = "Public Tests Docker Image"
-                         , placeholder = "Image Name"
-                         , fieldType = "text"
-                         , value = model.public_docker_image
-                         }
-                         PublicDockerImage
-                         model.errors
-                         SetField
-                     )
-                     (inputElement
-                         { label = "Private Tests Docker Image"
-                         , placeholder = "Image Name"
-                         , fieldType = "text"
-                         , value = model.private_docker_image
-                         }
-                         PrivateDockerImage
-                         model.errors
-                         SetField
-                     )
+            , rRow <|
+                r2Column
+                    [ inputLabel "Public Tests"
+                    , fileUploader (chooseHover Public model) (chooseFile Public model) (DragEnter Public) (DragLeave Public) (Pick Public) (GotFiles Public)
+                    ]
+                    [ inputLabel "Private Tests"
+                    , fileUploader (chooseHover Private model) (chooseFile Private model) (DragEnter Private) (DragLeave Private) (Pick Private) (GotFiles Private)
+                    ]
+            , rRowExtraSpacing <|
+                r2Column
+                    (inputElement
+                        { label = "Public Tests Docker Image"
+                        , placeholder = "Image Name"
+                        , fieldType = "text"
+                        , value = model.public_docker_image
+                        }
+                        PublicDockerImage
+                        model.errors
+                        SetField
+                    )
+                    (inputElement
+                        { label = "Private Tests Docker Image"
+                        , placeholder = "Image Name"
+                        , fieldType = "text"
+                        , value = model.private_docker_image
+                        }
+                        PrivateDockerImage
+                        model.errors
+                        SetField
+                    )
             , rRow <|
                 r1Column <|
                     inputElement
