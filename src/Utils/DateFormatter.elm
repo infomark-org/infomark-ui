@@ -81,7 +81,7 @@ monthFormatter sharedState month =
             t "month-aug"
 
         Time.Sep ->
-            t "month-sep"
+            t "month-sept"
 
         Time.Oct ->
             t "month-oct"
@@ -198,6 +198,7 @@ dateAndTimeFormatter sharedState time =
         [ text (dateFormat ++ " - " ++ timeFormat)
         ]
 
+
 shortTimeFormatString : SharedState -> Posix -> String
 shortTimeFormatString sharedState time =
     let
@@ -216,6 +217,7 @@ shortTimeFormatString sharedState time =
                     )
     in
     hour ++ ":" ++ minute
+
 
 fullDateFormatter : SharedState -> Posix -> Html msg
 fullDateFormatter sharedState time =
