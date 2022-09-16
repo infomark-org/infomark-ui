@@ -1,7 +1,7 @@
 module Api.Data.Grade exposing (ExecutionState(..), Grade, TestStatus(..), decoder, encoder)
 
-import Iso8601
 import Api.Data.User as User exposing (User)
+import Iso8601
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as Encode
@@ -24,6 +24,7 @@ type alias Grade =
     , submission_id : Int
     , users : List User
     , file_url : Maybe String
+    , plagiat : Bool
     }
 
 
@@ -44,6 +45,7 @@ decoder =
         |> required "submission_id" Decode.int
         |> required "users" (Decode.list User.decoder)
         |> optional "file_url" (Decode.nullable Decode.string) Nothing
+        |> required "plagiat" Decode.bool
 
 
 encoder : Grade -> Encode.Value
@@ -61,8 +63,9 @@ encoder model =
         , ( "feedback", Encode.string model.feedback )
         , ( "tutor_id", Encode.int model.tutor_id )
         , ( "submission_id", Encode.int model.submission_id )
-        , ( "users", (Encode.list User.encoder) model.users )
+        , ( "users", Encode.list User.encoder model.users )
         , ( "file_url", maybe Encode.string model.file_url )
+        , ( "plagiat", Encode.bool model.plagiat )
         ]
 
 
