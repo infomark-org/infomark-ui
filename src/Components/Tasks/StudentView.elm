@@ -563,6 +563,26 @@ view sharedState model deadlineReached =
                                 if String.isEmpty grade.feedback then
                                     [ text "" ]
 
+                                else if grade.plagiat then
+                                    [ rRow <|
+                                        r1Column <|
+                                            [ inputLabel "Feedback"
+                                            , renderInTextBox
+                                                grade.feedback
+                                                True
+                                            ]
+                                    , h3 [ classes [ TC.tl, TC.bn, TC.dark_red ] ]
+                                        [ text "Diese Abgabe wurde als Plagiat erkannt und wird daher mit 0 Punkten bewertet." ]
+                                    , h2 [ classes [ TC.pa4, TC.mt4, TC.bt, TC.bb, TC.bw2, TC.dark_red, TC.b__black ] ]
+                                        [ text <|
+                                            "(Bewertung: "
+                                                ++ String.fromInt grade.acquired_points
+                                                ++ "/"
+                                                ++ String.fromInt model.task.max_points
+                                                ++ " Punkte)"
+                                        ]
+                                    ]
+
                                 else
                                     [ rRow <|
                                         r1Column <|
@@ -576,17 +596,17 @@ view sharedState model deadlineReached =
                                             String.fromInt grade.acquired_points
                                                 ++ "/"
                                                 ++ String.fromInt model.task.max_points
-                                                ++ " Points acquired"
+                                                ++ " Punkte"
                                         ]
                                     ]
 
                             _ ->
                                 [ text "" ]
                        )
-                    ++ [ rRow <|
-                            r1Column <|
-                                [ h2 [ classes [ TC.tl, TC.bn, TC.dark_red ] ] [ text <| "Hinweis: Fehlerhafte Abgaben werden mit 0 Punkten bewertet!" ] ]
-                       ]
+                    -- ++ [ rRow <|
+                    --         r1Column <|
+                    --             [ h2 [ classes [ TC.tl, TC.bn, TC.dark_red ] ] [ text <| "Hinweis: Fehlerhafte Abgaben werden mit 0 Punkten bewertet!" ] ]
+                    --    ]
                     ++ [ rRow <|
                             r1Column <|
                                 sliderInputElement
