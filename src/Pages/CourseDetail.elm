@@ -362,7 +362,12 @@ update sharedState msg model =
                     updateGroupDisplay sharedState { model | ownGroupsRequest = response }
 
                 ( model2, cmd1, upd1 ) =
-                    updateStudentTeam sharedState model1
+                    case model.courseRole of
+                        Just Student ->
+                            updateStudentTeam sharedState model1
+
+                        _ ->
+                            ( model1, cmd, upd )
             in
             ( model2, Cmd.batch [ cmd, cmd1 ], upd )
 
