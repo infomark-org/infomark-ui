@@ -316,8 +316,8 @@ view sharedState model =
                                 ++ [ text "Falls diese noch nicht vergeben wurde, bitte an "
 
                                    --, a [ classes [ TC.link ] ] [text "info1-ws2021@informatik.uni-tuebingen.de"]
-                                   , a [ classes [ TC.link ], href "mailto:info1-ws2223@informatik.uni-tuebingen.de?subject=[Informatik 2] Registrierung" ]
-                                        [ text "info1-ws2223@informatik.uni-tuebingen.de" ]
+                                   , a [ classes [ TC.link ], href "mailto:info1-ws2223@cs.uni-tuebingen.de?subject=[Informatik 1] Registrierung" ]
+                                        [ text "info1-ws2223@cs.uni-tuebingen.de" ]
                                    , text " wenden. "
                                    , text "Geben Sie in diesem Fall in Ihrer E-Mail an uns die folgenden Daten an: "
                                    , text "Vorname, Nachname, Studiengang, Semester, Matrikelnummer (falls vorhanden)."
@@ -478,8 +478,8 @@ view sharedState model =
                             , text "Bitte an "
 
                             --, a [ classes [ TC.link ] ] [text "info1-ws2021@informatik.uni-tuebingen.de"]
-                            , a [ classes [ TC.link ], href "mailto:info1-ws2223@informatik.uni-tuebingen.de?subject=[Informatik 1] Registrierung" ]
-                                [ text "info1-ws2223@informatik.uni-tuebingen.de" ]
+                            , a [ classes [ TC.link ], href "mailto:info1-ws2223@cs.uni-tuebingen.de?subject=[Informatik 1] Registrierung" ]
+                                [ text "info1-ws2223@cs.uni-tuebingen.de" ]
                             , text " wenden. "
                             , text "Geben Sie in diesem Fall in Ihrer E-Mail an uns den fehlenden Studiengang oder Abschluss an."
                             ]
