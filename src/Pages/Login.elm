@@ -176,7 +176,7 @@ view sharedState model =
                     ]
                     [ img [ src "/images/Logo.svg" ] []
                     ]
-                , div [ classes [ TC.dtc, TC.v_mid, TC.pl3, TC.mw7, TC.center, TC.pa4, TC.black_40]] [text "Lehrstuhl für Datenbanksysteme (Prof. Torsten Grust)"]
+                , div [ classes [ TC.dtc, TC.v_mid, TC.pl3, TC.mw7, TC.center, TC.pa4, TC.black_40]] [text "C++ Blockkurs (Lehrstuhl für Angewandte Bioinformatik)"]
                 ]
             , Html.form
                 [ classes

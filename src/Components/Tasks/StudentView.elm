@@ -185,7 +185,7 @@ update sharedState msg model =
                                 500 ->
                                     ShowToast <|
                                         Components.Toasty.Error "Error"
-                                            "Server rejected file. Too large or no .rkt file"
+                                            "Server rejected file. Too large or no .zip file"
 
                                 401 ->
                                     ShowToast <|
@@ -267,7 +267,7 @@ update sharedState msg model =
             ( { model | collapse = not model.collapse }, Cmd.none, NoUpdate )
 
         GotFiles file files ->
-            case ( File.size file < 7340032, String.contains ".rkt" <| File.name file ) of
+            case ( File.size file < 7340032, String.contains ".zip" <| File.name file ) of
                 ( True, True ) ->
                     ( { model | hover = False, submission = Just file }, Cmd.none, NoUpdate )
 
@@ -290,11 +290,11 @@ update sharedState msg model =
                     , Cmd.none
                     , ShowToast <|
                         Components.Toasty.Error "Error"
-                            "Only rkt files are allowed for submissions"
+                            "Only zip files are allowed for submissions"
                     )
 
         Pick ->
-            ( model, Select.files [ ".rkt" ] GotFiles, NoUpdate )
+            ( model, Select.files [ "application/zip" ] GotFiles, NoUpdate )
 
         DragEnter ->
             ( { model | hover = True }, Cmd.none, NoUpdate )
@@ -427,7 +427,7 @@ view sharedState model deadlineReached =
                             [ text "For "
                             , span [ classes [ TC.fw6 ] ] [ text "programming exercises:" ]
                             , text " Upload a "
-                            , span [ classes [ TC.fw6 ] ] [ text "rkt-file" ]
+                            , span [ classes [ TC.fw6 ] ] [ text "zip-file" ]
                             , text " that contains your solution."
 
                             --, text " that contains all "

@@ -9,7 +9,8 @@ isInvalid email =
     let
         emailPattern =
             Maybe.withDefault Regex.never <|
-                Regex.fromString "[A-Za-z0-9._%+-]+@student.uni-tuebingen.de"
+                Regex.fromString "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]*"
+                --Regex.fromString "[A-Za-z0-9._%+-]+@student.uni-tuebingen.de"
     in
     not <| Regex.contains emailPattern email
 

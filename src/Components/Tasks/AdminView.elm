@@ -215,7 +215,7 @@ update sharedState msg model =
             )
 
         Pick fileType ->
-            ( model, Select.files [ ".rkt" ] (GotFiles fileType), NoUpdate )
+            ( model, Select.files [ "application/zip" ] (GotFiles fileType), NoUpdate )
 
         DragEnter fileType ->
             ( updateHover fileType True model, Cmd.none, NoUpdate )
