@@ -574,7 +574,7 @@ navView sharedState model =
                     ]
                 ]
                 []
-            , div [ classes [ TC.dtc, TC.v_mid, TC.f5, TC.white, TC.ph2, TC.pa3, TC.fw5]] [text "Lehrstuhl für Datenbanksysteme (Prof. Torsten Grust)"]
+            , div [ classes [ TC.dtc, TC.v_mid, TC.f5, TC.white, TC.ph2, TC.pa3, TC.fw5]] [text "C++ Blockkurs (Lehrstuhl für Angewandte Bioinformatik)"]
             ]
         , div
             [ classes
@@ -649,8 +649,10 @@ footerView sharedState model =
                 ]
             , Styles.textStyle
             ]
-            [ b [ classes [ TC.ttu ] ]
-                [ text "Lehrstuhl Datenbanksysteme" ]
+            [ text "© 2022 "
+            , b [ classes [ TC.ttu ] ]
+                [ text "Lehrstuhl Computergrafik (with some friendly help from the Lehrstuhl Datenbanksysteme), University Tübingen" ]
+            , text "., All Rights Reserved"
             ]
         , div
             [ classes
