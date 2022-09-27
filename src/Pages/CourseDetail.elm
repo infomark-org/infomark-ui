@@ -1235,8 +1235,8 @@ view sharedState model =
                 , normalPage <|
                     [ viewSheets sharedState model
 
-                    --, viewMaterials sharedState model Slide
-                    --, viewMaterials sharedState model Supplementary
+                    , viewMaterials sharedState model Slide
+                    , viewMaterials sharedState model Supplementary
                     , viewDetermineGroupDisplay role sharedState model
                     , viewDetermineTeamOrSearch role sharedState model
                     , viewStudentTeam role sharedState model
