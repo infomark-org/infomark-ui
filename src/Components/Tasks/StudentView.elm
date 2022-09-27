@@ -428,7 +428,7 @@ view sharedState model deadlineReached =
                             , span [ classes [ TC.fw6 ] ] [ text "programming exercises:" ]
                             , text " Upload a "
                             , span [ classes [ TC.fw6 ] ] [ text "zip-file" ]
-                            , text " that contains your solution."
+                            , text " that contains the submission folder of your C++ project."
 
                             --, text " that contains all "
                             --, span [ classes [ TC.fw6 ] ] [ text "package directories" ]
