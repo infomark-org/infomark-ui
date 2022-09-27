@@ -300,41 +300,47 @@ viewTask sharedState model task grade feedback =
                     ]
                 ]
         ]
-            --++ (case grade.file_url of
-            --        Just url ->
-            --            if String.isEmpty url then
-            --                [ text "" ]
-            --            else
-            --                [ CE.rRowExtraSpacing <|
-            --                    CE.r1Column <|
-            --                        [ CE.inputLabel "Public Test Results"
-            --                        , CE.renderInTerminalBox
-            --                            (case grade.public_execution_state of
-            --                                Pending ->
-            --                                    "Pending Test"
-            --                                Running ->
-            --                                    "Running Test"
-            --                                Finished ->
-            --                                    grade.public_test_log
-            --                            )
-            --                        ]
-            --                , CE.rRowExtraSpacing <|
-            --                    CE.r1Column <|
-            --                        [ CE.inputLabel "Private Test Results"
-            --                        , CE.renderInTerminalBox
-            --                            (case grade.private_execution_state of
-            --                                Pending ->
-            --                                    "Pending Test"
-            --                                Running ->
-            --                                    "Running Test"
-            --                                Finished ->
-            --                                    grade.private_test_log
-            --                            )
-            --                        ]
-            --                ]
-            --        Nothing ->
-            --            [ text "" ]
-            --   )
+            ++ (case grade.file_url of
+                    Just url ->
+                        if String.isEmpty url then
+                            [ text "" ]
+
+                        else
+                            [ CE.rRowExtraSpacing <|
+                                CE.r1Column <|
+                                    [ CE.inputLabel "Public Test Results"
+                                    , CE.renderInTerminalBox
+                                        (case grade.public_execution_state of
+                                            Pending ->
+                                                "Pending Test"
+
+                                            Running ->
+                                                "Running Test"
+
+                                            Finished ->
+                                                grade.public_test_log
+                                        )
+                                    ]
+                            , CE.rRowExtraSpacing <|
+                                CE.r1Column <|
+                                    [ CE.inputLabel "Private Test Results"
+                                    , CE.renderInTerminalBox
+                                        (case grade.private_execution_state of
+                                            Pending ->
+                                                "Pending Test"
+
+                                            Running ->
+                                                "Running Test"
+
+                                            Finished ->
+                                                grade.private_test_log
+                                        )
+                                    ]
+                            ]
+
+                    Nothing ->
+                        [ text "" ]
+               )
             ++ [ CE.rRowExtraSpacing <|
                     CE.r2Column
                         (CE.textAreaElement
