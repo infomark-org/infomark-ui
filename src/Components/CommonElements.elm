@@ -15,7 +15,6 @@ module Components.CommonElements exposing
     , inputLabel
     , multiButton
     , nButtonList
-    , nButtonList2
     , normalPage
     , oneButtonList
     , pageContainer
@@ -895,71 +894,6 @@ nButtonList listElements =
                         ]
                         [ text elt.button1_icon ]
                      , text elt.label
-                     ]
-                        ++ List.indexedMap
-                            (\idx b ->
-                                i
-                                    [ class "material-icons"
-                                    , classes
-                                        ([ TC.pointer
-                                         , TC.mr0
-                                         , TC.ml3
-                                         , TC.pa2
-                                         , TC.black_40
-                                         , TC.hover_bg_near_black
-                                         , TC.br_100
-                                         , TC.hover_near_white
-                                         ]
-                                            ++ (if idx == 0 then
-                                                    [ TC.ml_auto ]
-
-                                                else
-                                                    []
-                                               )
-                                        )
-                                    , onClick b.button_msg
-                                    ]
-                                    [ text b.button_icon ]
-                            )
-                            elt.right_buttons
-                    )
-            )
-            listElements
-        )
-
-
-nButtonList2 :
-    List
-        { right_buttons : List { button_icon : String, button_msg : msg }
-        , label : String
-        }
-    -> Html msg
-nButtonList2 listElements =
-    ul
-        [ classes
-            [ TC.ma0
-            , TC.pv2
-            , TC.ph0
-            , TC.w_100
-            , TC.f5
-            , TC.black_80
-            ]
-        ]
-        (List.map
-            (\elt ->
-                li
-                    [ classes
-                        [ TC.hover_bg_near_white
-                        , TC.h3_ns
-                        , TC.flex
-                        , TC.relative
-                        , TC.items_center
-                        , TC.justify_start
-                        , TC.pv0
-                        , TC.ph2
-                        ]
-                    ]
-                    ([ text elt.label
                      ]
                         ++ List.indexedMap
                             (\idx b ->

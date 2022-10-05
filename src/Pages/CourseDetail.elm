@@ -63,7 +63,6 @@ import Components.CommonElements
         , inputElement
         , multiButton
         , nButtonList
-        , nButtonList2
         , normalPage
         , pageContainer
         , r2Column
@@ -2196,13 +2195,13 @@ viewSheets sharedState model =
                                             Nothing ->
                                                 ( sheet.name, defaultStyle )
                                 in
-                                { --button1_icon = "get_app"
-                                  -- , button1_msg =
-                                  --     Download <|
-                                  --         unwrap <|
-                                  --             sheetFile model.courseId
-                                  --                 sheet.id
-                                  right_buttons =
+                                { button1_icon = "get_app"
+                                , button1_msg =
+                                    Download <|
+                                        unwrap <|
+                                            sheetFile model.courseId
+                                                sheet.id
+                                , right_buttons =
                                     (if model.courseRole == Just Admin then
                                         [ { button_icon = "edit"
                                           , button_msg =
@@ -2226,7 +2225,7 @@ viewSheets sharedState model =
                                 , label = Tuple.first toDisplay
                                 }
                             )
-                        |> nButtonList2
+                        |> nButtonList
                     ]
                         --        rRowHeaderActionButtons
                         --            (Tuple.first toDisplay)
