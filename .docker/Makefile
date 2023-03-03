@@ -1,4 +1,4 @@
 .PHONY: run
 
 build:
-	docker build . -t infomark/elm:v1
+	docker build . -t infomark/elm:0.19.0
