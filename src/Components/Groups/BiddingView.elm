@@ -314,7 +314,7 @@ viewGroupBid sharedState model data =
                     group.tutor
 
                 curBid =
-                    Maybe.withDefault 1 data.bid
+                    Maybe.withDefault 10 data.bid
             in
             div [ classes [ TC.w_100, TC.ph2 ] ] <|
                 [ h3 [ Styles.listHeadingStyle ]
