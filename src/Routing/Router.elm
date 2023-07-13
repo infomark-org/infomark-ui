@@ -574,7 +574,7 @@ navView sharedState model =
                     ]
                 ]
                 []
-            , div [ classes [ TC.dtc, TC.v_mid, TC.f5, TC.white, TC.ph2, TC.pa3, TC.fw5]] [text "C++ Blockkurs (Lehrstuhl für Angewandte Bioinformatik)"]
+            , div [ classes [ TC.dtc, TC.v_mid, TC.f5, TC.white, TC.ph2, TC.pa3, TC.fw5]] [text "C++ Blockkurs (Lehrstuhl Computergrafik)"]
             ]
         , div
             [ classes
