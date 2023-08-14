@@ -201,6 +201,7 @@ majors =
     , "International Economics"
     , "Japanologie"
     , "Kognitionswissenschaft"
+    , "Machine Learning"
     , "Mathematik"
     , "Medieninformatik"
     , "Medienwissenschaften"
