@@ -176,7 +176,7 @@ view sharedState model =
                     ]
                     [ img [ src "/images/Logo.svg" ] []
                     ]
-                , div [ classes [ TC.dtc, TC.v_mid, TC.pl3, TC.mw7, TC.center, TC.pa4, TC.black_40]] [text "C++ Blockkurs (Lehrstuhl Computergrafik)"]
+                , div [ classes [ TC.dtc, TC.v_mid, TC.pl3, TC.mw7, TC.center, TC.pa4, TC.black_40]] [text "C++ Blockkurs 2024 (Lehrstuhl Angewandte Bioinformatik)"]
                 ]
             , Html.form
                 [ classes

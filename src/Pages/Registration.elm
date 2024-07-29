@@ -274,7 +274,7 @@ view sharedState model =
                     ]
                     [ img [ src "/images/Logo.svg" ] []
                     ]
-                , div [ classes [ TC.dtc, TC.v_mid, TC.pl3, TC.mw7, TC.center, TC.pa4, TC.black_40 ] ] [ text "C++ Blockkurs (Lehrstuhl Computergrafik)" ]
+                , div [ classes [ TC.dtc, TC.v_mid, TC.pl3, TC.mw7, TC.center, TC.pa4, TC.black_40 ] ] [ text "C++ Blockkurs 2024 (Lehrstuhl Angewandte Bioinformatik)" ]
                 ]
             , Html.form
                 [ classes
@@ -316,9 +316,9 @@ view sharedState model =
                              ]
                                 ++ [ text "Falls diese noch nicht vergeben wurde, bitte an "
 
-                                   --, a [ classes [ TC.link ] ] [text "lukas.ruppert@uni-tuebingen.de"]
-                                   , a [ classes [ TC.link ], href "mailto:lukas.ruppert@uni-tuebingen.de?subject=[C++] Registrierung" ]
-                                        [ text "lukas.ruppert@uni-tuebingen.de" ]
+                                   --, a [ classes [ TC.link ] ] [text "timo.sachsenberg@uni-tuebingen.de"]
+                                   , a [ classes [ TC.link ], href "mailto:timo.sachsenberg@uni-tuebingen.de?subject=[C++] Registrierung" ]
+                                        [ text "timo.sachsenberg@uni-tuebingen.de" ]
                                    , text " wenden. "
                                    , text "Geben Sie in diesem Fall in Ihrer E-Mail an uns die folgenden Daten an: "
                                    , text "Vorname, Nachname, Studiengang, Semester, Matrikelnummer (falls vorhanden)."
@@ -479,8 +479,8 @@ view sharedState model =
                             , text "Bitte an "
 
                             --, a [ classes [ TC.link ] ] [text "info1-ws2021@informatik.uni-tuebingen.de"]
-                            , a [ classes [ TC.link ], href "mailto:lukas.ruppert@uni-tuebingen.de?subject=[C++] Registrierung" ]
-                                [ text "lukas.ruppert@uni-tuebingen.de" ]
+                            , a [ classes [ TC.link ], href "mailto:timo.sachsenberg@uni-tuebingen.de?subject=[C++] Registrierung" ]
+                                [ text "timo.sachsenberg@uni-tuebingen.de" ]
                             , text " wenden. "
                             , text "Geben Sie in diesem Fall in Ihrer E-Mail an uns den fehlenden Studiengang oder Abschluss an."
                             ]

@@ -574,7 +574,7 @@ navView sharedState model =
                     ]
                 ]
                 []
-            , div [ classes [ TC.dtc, TC.v_mid, TC.f5, TC.white, TC.ph2, TC.pa3, TC.fw5]] [text "C++ Blockkurs (Lehrstuhl Computergrafik)"]
+            , div [ classes [ TC.dtc, TC.v_mid, TC.f5, TC.white, TC.ph2, TC.pa3, TC.fw5]] [text "C++ Blockkurs 2024 (Lehrstuhl Angewandte Bioinformatik)"]
             ]
         , div
             [ classes
@@ -649,7 +649,7 @@ footerView sharedState model =
                 ]
             , Styles.textStyle
             ]
-            [ text "© 2022 "
+            [ text "© 2024 "
             , b [ classes [ TC.ttu ] ]
                 [ text "Lehrstuhl Computergrafik (with some friendly help from the Lehrstuhl Datenbanksysteme), University Tübingen" ]
             , text "., All Rights Reserved"
